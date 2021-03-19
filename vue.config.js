@@ -8,7 +8,7 @@ module.exports = {
     standalone: {
       template: 'public/browser-extension.html',
       entry: './src/standalone/main.js',
-      title: 'Standalone',
+      title: 'Rndmzr',
       filename: 'index.html'
     }
   },
