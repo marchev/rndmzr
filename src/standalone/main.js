@@ -3,7 +3,9 @@ import Buefy from 'buefy'
 import 'buefy/dist/buefy.css'
 import App from './App.vue'
 
-Vue.use(Buefy)
+Vue.use(Buefy, {
+  defaultIconPack: 'fas'
+})
 
 /* eslint-disable no-new */
 new Vue({
