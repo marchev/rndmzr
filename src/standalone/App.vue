@@ -16,9 +16,21 @@
         </div>
         <div class="navbar-menu" v-bind:class="{ 'is-active': isMobileMenuVisible }" id="nav-links">
           <div class="navbar-end">
-            <a class="navbar-item">Donate</a>
+            <a class="navbar-item">
+              <b-icon
+                  pack="fas"
+                  icon="donate"
+                  size="is-small">
+              </b-icon>
+              <span class="ml-2">Donate</span>
+            </a>
             <a class="navbar-item mr-5">
-              {{ userInfo.email }}
+              <b-icon
+                  pack="fas"
+                  icon="user"
+                  size="is-small">
+              </b-icon>
+              <span class="ml-2">{{ userInfo.name }}</span>
             </a>
           </div>
         </div>
