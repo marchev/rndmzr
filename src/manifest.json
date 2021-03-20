@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "__MSG_extName__",
-  "homepage_url": "http://localhost:8080/",
-  "description": "A Vue Browser Extension",
+  "homepage_url": "https://github.com/marchev",
+  "description": "Randomized Clockify timesheets generator",
   "default_locale": "en",
   "permissions": [
     "<all_urls>",
