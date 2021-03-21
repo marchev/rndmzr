@@ -133,6 +133,10 @@
 </template>
 
 <script>
+import ProfileService from '@/services/profile-service'
+
+const profileService = new ProfileService()
+
 export default {
   name: 'TimesheetTable',
     data() {
@@ -236,8 +240,12 @@ export default {
                 available: { title: 'Stock Available', display: true },
                 cleared: { title: 'Stock Cleared', display: true },
             },
-            showDetailIcon: true
+            showDetailIcon: true,
+            activeProfile: ""
         }
+    },
+    async mounted() {
+      this.activeProfile = await profileService.getActiveProfile()
     },
     methods: {
         toggle(row) {
