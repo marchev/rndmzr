@@ -61,6 +61,8 @@
             </b-autocomplete>
         </b-field>
       </section>
+      <br/>
+      <timesheet-table></timesheet-table>
     </div>
   </div>
 </template>
@@ -68,11 +70,13 @@
 <script>
 import axios from 'axios'
 import debounce from 'lodash/debounce'
+import TimesheetTable from '../components/TimesheetTable.vue'
 
 const API_KEY = 'MmZhNDI0Y2UtZTBlZS00NzhmLThmNmEtZDU4NmE0ODc1OTA4'
 
 export default {
   name: 'App',
+  components: { TimesheetTable },
   data() {
     return {
         data: [],
