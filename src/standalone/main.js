@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Buefy from 'buefy'
 import 'buefy/dist/buefy.css'
 import App from './App.vue'
+import store from '../store'
 
 import { library } from '@fortawesome/fontawesome-svg-core';
 // internal icons
@@ -29,6 +30,7 @@ Vue.use(Buefy, {
 
 /* eslint-disable no-new */
 new Vue({
+  store,
   el: '#app',
   render: h => h(App)
 })

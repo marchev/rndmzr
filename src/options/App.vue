@@ -19,27 +19,26 @@
 </template>
 
 <script>
-import 'chrome-extension-async/chrome-extension-async'
+import { mapActions } from 'vuex'
+import { mapFields } from 'vuex-map-fields'
 
 export default {
   name: 'App',
-  data () {
-    return {
-      profile: '',
-      apiKey: ''
-    }
+  computed: {
+    ...mapFields([
+      'profile',
+      'apiKey',
+    ])
   },
   async created () {
-    const settings = await chrome.storage.sync.get(['profile', 'apiKey'])
-    this.profile = settings.profile
-    this.apiKey = settings.apiKey
+    await this.loadProfile()
+    await this.loadApiKey()
   },
   methods: {
+    ...mapActions(['loadProfile', 'updateProfile', 'loadApiKey', 'updateApiKey']),
     async saveSettings() {
-      await chrome.storage.sync.set({
-        profile: this.profile,
-        apiKey: this.apiKey
-      })
+      await this.updateProfile(this.profile)
+      await this.updateApiKey(this.apiKey)
     }
   }
 }
