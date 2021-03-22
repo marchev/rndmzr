@@ -68,15 +68,20 @@
 </template>
 
 <script>
-import axios from 'axios'
 import debounce from 'lodash/debounce'
-import TimesheetTable from '../components/TimesheetTable.vue'
+import { mapActions } from 'vuex'
+import { mapFields } from 'vuex-map-fields'
 
-const API_KEY = 'MmZhNDI0Y2UtZTBlZS00NzhmLThmNmEtZDU4NmE0ODc1OTA4'
+import TimesheetTable from '../components/TimesheetTable.vue'
 
 export default {
   name: 'App',
   components: { TimesheetTable },
+  async created () {
+    await this.loadProfile()
+    await this.loadApiKey()
+    this.userInfo = await this.getUserInfo()
+  },
   data() {
     return {
         data: [],
@@ -86,10 +91,17 @@ export default {
         isMobileMenuVisible: false
     }
   },
-  async mounted() {
-    this.userInfo = await this.getUserInfo()
+  computed: {
+    ...mapFields([
+      'profile',
+      'apiKey',
+    ])
   },
   methods: {
+    ...mapActions([
+      'loadProfile',
+      'loadApiKey',
+    ]),
     getAsyncData: debounce(function (name) {
         if (!name.length) {
             this.data = []
@@ -97,21 +109,21 @@ export default {
         }
         
         this.isFetching = true
-        axios.get(`https://api.clockify.me/api/v1/workspaces/${this.userInfo.activeWorkspace}/projects?name=${name}`, { headers: { 'X-Api-Key': API_KEY } })
-            .then(({ data }) => {
-                this.data = []
-                data.forEach((item) => this.data.push(item))
-            })
-            .catch((error) => {
-                this.data = []
-                throw error
-            })
-            .finally(() => {
-                this.isFetching = false
-            })
+        this.$http.get(`/workspaces/${this.userInfo.activeWorkspace}/projects?name=${name}`)
+          .then(({ data }) => {
+              this.data = []
+              data.forEach((item) => this.data.push(item))
+          })
+          .catch((error) => {
+              this.data = []
+              throw error
+          })
+          .finally(() => {
+              this.isFetching = false
+          })
     }, 500),
     async getUserInfo() {
-      const response = await axios.get('https://api.clockify.me/api/v1/user', { headers: { 'X-Api-Key': API_KEY } })
+      const response = await this.$http.get('/user')
       return response.data
     },
     toggleMobileMenu() {
