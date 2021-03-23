@@ -36,7 +36,7 @@ Vue.use(Buefy, {
 /* eslint-disable no-unused-vars */
 store.dispatch('loadApiKey')
   .then(apiKeyLoaded => {
-    Vue.prototype.$http.defaults.headers.common['X-Api-Key'] = store.state.apiKey
+    axios.defaults.headers.common['X-Api-Key'] = store.state.apiKey
     
     /* eslint-disable no-new */
     new Vue({

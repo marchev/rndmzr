@@ -26,13 +26,13 @@ export default class ProfileService {
 
     AGILE_DELIVERY_LEAD_DISTRIBUTION = {
         'CAPEX': {
-            weight: 35,
+            weight: 40,
             activities: [
                 
             ]
         },
         'OPEX': {
-            weight: 65,
+            weight: 60,
             activities: [
                 
             ]
