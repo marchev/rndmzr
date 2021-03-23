@@ -1,6 +1,6 @@
 <template>
   <section>
-        <b-table :data="timesheetData" :opened-detailed="['Nitro']" :default-sort="['name', 'asc']" ref="table" detailed hoverable custom-detail-row detail-key="name" show-detail-icon="true">
+        <b-table :data="timesheetData" :opened-detailed="['Nitro']" :default-sort="['name', 'asc']" ref="table" detailed hoverable custom-detail-row detail-key="name" :show-detail-icon="true">
 
             <b-table-column field="project" label="Project" width="300" v-slot="props">
                 {{ props.row.name }}

@@ -1,7 +1,6 @@
 <template>
   <div>
     <nav class="navbar is-light has-shadow">
-      <!-- Logo / Brand -->
       <div class="container">
         <div class="navbar-brand">
           <a class="navbar-item">
@@ -24,13 +23,22 @@
               </b-icon>
               <span class="ml-2">Donate</span>
             </a>
-            <a class="navbar-item mr-5">
+            <a class="navbar-item mr-5" v-if="userInfo.name">
               <b-icon
                   pack="fas"
                   icon="user"
                   size="is-small">
               </b-icon>
               <span class="ml-2">{{ userInfo.name }}</span>
+            </a>
+            <a class="content navbar-item mr-5" v-if="!userInfo.name">
+              <b-icon
+                  pack="fas"
+                  icon="user"
+                  size="is-small"
+                  class="mr-2">
+              </b-icon>
+              <b-skeleton width="130px" :animated="true"></b-skeleton>
             </a>
           </div>
         </div>
@@ -78,9 +86,8 @@ export default {
   name: 'App',
   components: { TimesheetTable },
   async created () {
-    await this.loadProfile()
-    await this.loadApiKey()
     this.userInfo = await this.getUserInfo()
+    await this.loadProfile()
   },
   data() {
     return {
@@ -93,14 +100,12 @@ export default {
   },
   computed: {
     ...mapFields([
-      'profile',
-      'apiKey',
+      'profile'
     ])
   },
   methods: {
     ...mapActions([
-      'loadProfile',
-      'loadApiKey',
+      'loadProfile'
     ]),
     getAsyncData: debounce(function (name) {
         if (!name.length) {

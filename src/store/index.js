@@ -10,7 +10,6 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     profile: '',
-    apiKey: '',
     projects: []
   },
   getters: {
@@ -27,16 +26,6 @@ export default new Vuex.Store({
     async updateProfile(context, profile) {
       await chrome.storage.sync.set({ profile })
       context.commit('updateField', { path: 'profile', value: profile })
-    },
-    async loadApiKey(context) {
-      const { apiKey } = await chrome.storage.sync.get('apiKey')
-      context.commit('updateField', { path: 'apiKey', value: apiKey })
-    },
-    async updateApiKey(context, apiKey) {
-      await chrome.storage.sync.set({ apiKey })
-      context.commit('updateField', { path: 'apiKey', value: apiKey })
     }
-  },
-  modules: {
   }
 })
