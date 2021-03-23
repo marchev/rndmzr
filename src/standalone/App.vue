@@ -48,7 +48,7 @@
       <section>
           <h1 class="is-size-3 mt-4 mb-4">My projects</h1>
           <b-taglist>
-            <b-tag v-for="project in selected" :key="project.id" type="is-info" size="is-medium" closable>{{ project.name }}</b-tag>
+            <b-tag v-for="project in projects" :key="project.id" type="is-info" size="is-medium" closable @close="removeProject(project)">{{ project.name }}</b-tag>
           </b-taglist>
         <b-field label="Search projects">
             <b-autocomplete
@@ -56,8 +56,8 @@
                 placeholder="Start typing project name here..."
                 field="title"
                 :loading="isFetching"
-                @typing="getAsyncData"
-                @select="option => selected.push(option)"
+                @typing="getProjects"
+                @select="option => addProject(option)"
                 :keep-first="true">
 
                 <template slot-scope="props">
@@ -88,11 +88,11 @@ export default {
   async created () {
     this.userInfo = await this.getUserInfo()
     await this.loadProfile()
+    await this.loadProjects()
   },
   data() {
     return {
         data: [],
-        selected: [],
         isFetching: false,
         userInfo: {},
         isMobileMenuVisible: false
@@ -100,14 +100,18 @@ export default {
   },
   computed: {
     ...mapFields([
-      'profile'
+      'profile',
+      'projects'
     ])
   },
   methods: {
     ...mapActions([
-      'loadProfile'
+      'loadProfile',
+      'loadProjects',
+      'addProject',
+      'removeProject'
     ]),
-    getAsyncData: debounce(function (name) {
+    getProjects: debounce(function (name) {
         if (!name.length) {
             this.data = []
             return
@@ -117,7 +121,10 @@ export default {
         this.$http.get(`/workspaces/${this.userInfo.activeWorkspace}/projects?name=${name}`)
           .then(({ data }) => {
               this.data = []
-              data.forEach((item) => this.data.push(item))
+              data.forEach((item) => this.data.push({
+                id: item.id,
+                name: item.name
+              }))
           })
           .catch((error) => {
               this.data = []
