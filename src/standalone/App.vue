@@ -6,7 +6,8 @@
           <a class="navbar-item">
             <img src="../assets/logo.png" style="max-height: 48px">
           </a>
-          <h1 class="is-size-2 has-text-weight">rndmzr</h1>
+          <h1 class="is-size-2 has-text-weight">rndmzr </h1>
+          <b-tag type="is-danger" class="ml-3 mt-5">beta</b-tag>
           <a class="navbar-burger mt-3 mr-3" @click="toggleMobileMenu" v-bind:class="{ 'is-active': isMobileMenuVisible }">
             <span></span>
             <span></span>
