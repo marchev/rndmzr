@@ -1,6 +1,6 @@
 <template>
   <section>
-        <b-table :data="timesheetData" :opened-detailed="['Nitro']" :default-sort="['name', 'asc']" ref="table" detailed hoverable custom-detail-row detail-key="name" :show-detail-icon="true">
+        <b-table class="mt-5" :data="timesheetData" :opened-detailed="['Nitro']" :default-sort="['name', 'asc']" ref="table" detailed hoverable custom-detail-row detail-key="name" :show-detail-icon="true">
 
             <b-table-column field="project" label="Project" width="300" v-slot="props">
                 {{ props.row.name }}
@@ -49,13 +49,7 @@
 </template>
 
 <script>
-//import { mapActions } from 'vuex'
-//import { mapFields } from 'vuex-map-fields'
 import dayjs from 'dayjs'
-
-import ProfileService from '@/services/profile-service'
-
-const profileService = new ProfileService()
 
 export default {
     name: 'TimesheetTable',
@@ -156,14 +150,8 @@ export default {
             ]
         }
     },
-    // computed: {
-    //     ...mapFields([
-    //     'timesheetData'
-    //     ])
-    // },
     async created() {
         this.weekDates = this.getWeekDates()
-        this.activeProfile = await profileService.getActiveProfile()
     },
     methods: {
         toggle(row) {

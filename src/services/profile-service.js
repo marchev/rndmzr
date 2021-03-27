@@ -76,12 +76,6 @@ export default class ProfileService {
         'product-owner': this.PRODUCT_OWNER
     }
 
-    async getActiveProfile() {
-        const settings = await chrome.storage.sync.get(['profile'])
-        const { profile } = settings
-        return profile
-    }
-
     getCapexOpexDistribution(profile) {
         return this.CAPEX_OPEX_DISTRIBUTION[profile]
     }
