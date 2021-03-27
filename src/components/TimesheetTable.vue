@@ -1,9 +1,11 @@
 <template>
   <section>
-        <b-table class="mt-5" :data="projects" :default-sort="['name', 'asc']" ref="table" detailed hoverable custom-detail-row detail-key="name" :show-detail-icon="true">
+        <b-table class="mt-5" :data="showProfileTasksOnly ? profileProjects : projects" :default-sort="['name', 'asc']" ref="table" detailed hoverable custom-detail-row detail-key="id" :opened-detailed="projectIds" :show-detail-icon="true">
 
             <b-table-column field="project" label="Project" width="300" v-slot="props">
-                {{ props.row.name }}
+                <span class="has-text-weight-bold">
+                    {{ props.row.name }}
+                </span>
             </b-table-column>
 
             <b-table-column v-for="weekDate in weekDates" :key="weekDate.format('dddd')" :label="weekDate.format('ddd, MMM D')" centered v-slot="props">
@@ -27,13 +29,97 @@
                 <tr v-for="task in props.row.tasks" :key="task.id">
                     <td></td>
                     <td>{{ task.name }}</td>
-                    <td class="has-text-centered">0:30</td>
-                    <td class="has-text-centered">0:30</td>
-                    <td class="has-text-centered">0:30</td>
-                    <td class="has-text-centered">0:30</td>
-                    <td class="has-text-centered">0:30</td>
-                    <td class="has-text-centered">0:30</td>
-                    <td class="has-text-centered">0:30</td>
+                    <td class="has-text-centered">
+                        <b-field label="" class="ml-4 mr-4">
+                            <b-timepicker
+                                placeholder=""
+                                hour-format="24"
+                                icon="clock"
+                                size="is-small"
+                                :incrementMinutes="15"
+                                :incrementHours="1"
+                                >
+                            </b-timepicker>
+                        </b-field>
+                    </td>
+                    <td class="has-text-centered">
+                        <b-field label="" class="ml-4 mr-4">
+                            <b-timepicker
+                                placeholder=""
+                                hour-format="24"
+                                icon="clock"
+                                size="is-small"
+                                :incrementMinutes="15"
+                                :incrementHours="1"
+                                >
+                            </b-timepicker>
+                        </b-field>
+                    </td>
+                    <td class="has-text-centered">
+                        <b-field label="" class="ml-4 mr-4">
+                            <b-timepicker
+                                placeholder=""
+                                hour-format="24"
+                                icon="clock"
+                                size="is-small"
+                                :incrementMinutes="15"
+                                :incrementHours="1"
+                                >
+                            </b-timepicker>
+                        </b-field>
+                    </td>
+                    <td class="has-text-centered">
+                        <b-field label="" class="ml-4 mr-4">
+                            <b-timepicker
+                                placeholder=""
+                                hour-format="24"
+                                icon="clock"
+                                size="is-small"
+                                :incrementMinutes="15"
+                                :incrementHours="1"
+                                >
+                            </b-timepicker>
+                        </b-field>
+                    </td>
+                    <td class="has-text-centered">
+                        <b-field label="" class="ml-4 mr-4">
+                            <b-timepicker
+                                placeholder=""
+                                hour-format="24"
+                                icon="clock"
+                                size="is-small"
+                                :incrementMinutes="15"
+                                :incrementHours="1"
+                                >
+                            </b-timepicker>
+                        </b-field>
+                    </td>
+                    <td class="has-text-centered">
+                        <b-field label="" class="ml-4 mr-4">
+                            <b-timepicker
+                                placeholder=""
+                                hour-format="24"
+                                icon="clock"
+                                size="is-small"
+                                :incrementMinutes="15"
+                                :incrementHours="1"
+                                >
+                            </b-timepicker>
+                        </b-field>
+                    </td>
+                    <td class="has-text-centered">
+                        <b-field label="" class="ml-4 mr-4">
+                            <b-timepicker
+                                placeholder=""
+                                hour-format="24"
+                                icon="clock"
+                                size="is-small"
+                                :incrementMinutes="15"
+                                :incrementHours="1"
+                                >
+                            </b-timepicker>
+                        </b-field>
+                    </td>
                     <td class="has-text-centered">
                         <span :class="
                                 [
@@ -47,121 +133,45 @@
                 </tr>
             </template>
         </b-table>
+        <div id="profile-tasks-switch" class="mt-5">
+            <b-switch v-model="showProfileTasksOnly" type="is-success">Show profile tasks only</b-switch>
+        </div>
   </section>
 </template>
 
 <script>
 import { mapFields } from 'vuex-map-fields'
 import dayjs from 'dayjs'
+import ProfileService from '../services/profile-service'
+
+const profileService = new ProfileService()
 
 export default {
     name: 'TimesheetTable',
     computed: {
         ...mapFields([
-            'projects'
-        ])
+            'projects',
+            'profile'
+        ]),
+        profileProjects: function () {
+            return this.projects.map(project => ({
+                ...project,
+                tasks: project.tasks.filter(task => this.isProfileTask(task))
+            }))
+        },
+        projectIds: function () {
+            return this.projects.map(project => project.id)
+        }
     },
     data () {
         return {
-            /*
-            timesheetData: [
-            {
-                name: 'Nitro',
-                sold: 131,
-                available: 301,
-                items: [
-                    {
-                        name: 'Monopoly',
-                        sold: 57,
-                        available: 100
-                    },
-                    {
-                        name: 'Scrabble',
-                        sold: 23,
-                        available: 84
-                    },
-                    {
-                        name: 'Chess',
-                        sold: 37,
-                        available: 61
-                    },
-                    {
-                        name: 'Battleships',
-                        sold: 14,
-                        available: 56
-                    }
-                ]
-            },
-            {
-                name: 'Nyx',
-                sold: 88,
-                available: 167,
-                items: [
-                    {
-                        name: 'World Map',
-                        sold: 31,
-                        available: 38
-                    },
-                    {
-                        name: 'London',
-                        sold: 23,
-                        available: 29
-                    },
-                    {
-                        name: 'Sharks',
-                        sold: 20,
-                        available: 44
-                    },
-                    {
-                        name: 'Disney',
-                        sold: 14,
-                        available: 56
-                    }
-                ]
-            },
-            {
-                name: 'Tzaré',
-                sold: 434,
-                available: 721,
-                items: [
-                    {
-                        name: 'Hamlet',
-                        sold: 101,
-                        available: 187
-                    },
-                    {
-                        name: 'The Lord Of The Rings',
-                        sold: 85,
-                        available: 156
-                    },
-                    {
-                        name: 'To Kill a Mockingbird',
-                        sold: 78,
-                        available: 131
-                    },
-                    {
-                        name: 'Catch-22',
-                        sold: 73,
-                        available: 98
-                    },
-                    {
-                        name: 'Frankenstein',
-                        sold: 51,
-                        available: 81
-                    },
-                    {
-                        name: 'Alice\'s Adventures In Wonderland',
-                        sold: 46,
-                        available: 68
-                    }
-                ]
-            }
-            ]
-            */
+            capexOpexDistribution: {},
+            showProfileTasksOnly: true
         }
     },
-    async created() {
+    created() {
         this.weekDates = this.getWeekDates()
+        this.capexOpexDistribution = profileService.getCapexOpexDistribution(this.profile)
     },
     methods: {
         toggle(row) {
@@ -170,6 +180,14 @@ export default {
         getWeekDates() {
             return Array.from({length: 7}, (_, i) => i + 1)
                 .map(i => dayjs().day(i))
+        },
+        isProfileTask(task) {
+            for (let i = 0; i < this.capexOpexDistribution.tasks.length; i++) {
+                if (task.name.includes(this.capexOpexDistribution.tasks[i].name)) {
+                    return true
+                }
+            }
+            return false
         }
     }
 }

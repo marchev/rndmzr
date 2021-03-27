@@ -2,76 +2,53 @@ import 'chrome-extension-async/chrome-extension-async'
 
 export default class ProfileService {
 
-    ENGINEERING_MANAGER_DISTRIBUTION = {
-        'CAPEX': {
-            weight: 65,
-            activities: [
-                'Execution - Business requirement, Software, Database and Technical Design (CAPEX)',
-                'Execution - Technical Requirements (CAPEX)',
-                'Execution - Daily Standup, sprint planning, demos, and retrospective (CAPEX)',
-                'Execution - Software coding, code review and approval (CAPEX)',
-                'Execution - Software Release Management (CAPEX)',
-                'Execution - Testing (CAPEX)',
-            ]
+    ENGINEERING_MANAGER = {
+        distribution: {
+            capex: 65,
+            opex: 35
         },
-        'OPEX': {
-            weight: 35,
-            activities: [
-                'Admin - 1-1 Meetings, Team meetings, Townhalls (OPEX)',
-                'Admin - Hiring (OPEX)',
-                'Admin - Internal Paysafe Training (OPEX)',
-            ]
-        }
+        tasks: [
+            // CAPEX
+            { name: 'Execution - Business requirement, Software, Database and Technical Design (CAPEX)', type: 'capex' },
+            { name: 'Execution - Technical Requirements (CAPEX)', type: 'capex' },
+            { name: 'Execution - Daily Standup, sprint planning, demos, and retrospective (CAPEX)', type: 'capex' },
+            { name: 'Execution - Software coding, code review and approval (CAPEX)', type: 'capex' },
+            { name: 'Execution - Software Release Management (CAPEX)', type: 'capex' },
+            { name: 'Execution - Testing (CAPEX)', type: 'capex' },
+            // OPEX
+            { name: 'Admin - 1-1 Meetings, Team meetings, Townhalls (OPEX)', type: 'opex' },
+            { name: 'Admin - Hiring (OPEX)', type: 'capex' },
+            { name: 'Admin - Internal Paysafe Training (OPEX)', type: 'capex' },
+        ]
     }
 
-    AGILE_DELIVERY_LEAD_DISTRIBUTION = {
-        'CAPEX': {
-            weight: 40,
-            activities: [
-                
-            ]
+    AGILE_DELIVERY_LEAD = {
+        distribution: {
+            capex: 40,
+            opex: 60
         },
-        'OPEX': {
-            weight: 60,
-            activities: [
-                
-            ]
-        }
+        tasks: []
     }
 
     ARCHITECT = {
-        'CAPEX': {
-            weight: 95,
-            activities: [
-                
-            ]
+        distribution: {
+            capex: 95,
+            opex: 5
         },
-        'OPEX': {
-            weight: 5,
-            activities: [
-                
-            ]
-        }
+        tasks: []
     }
 
     PRODUCT_OWNER = {
-        'CAPEX': {
-            weight: 90,
-            activities: [
-                
-            ]
+        distribution: {
+            capex: 90,
+            opex: 10
         },
-        'OPEX': {
-            weight: 10,
-            activities: [
-                
-            ]
-        }
+        tasks: []
     }
 
     CAPEX_OPEX_DISTRIBUTION = {
-        'engineering-manager': this.ENGINEERING_MANAGER_DISTRIBUTION,
-        'agile-delivery-lead': this.AGILE_DELIVERY_LEAD_DISTRIBUTION,
+        'engineering-manager': this.ENGINEERING_MANAGER,
+        'agile-delivery-lead': this.AGILE_DELIVERY_LEAD,
         'architect': this.ARCHITECT,
         'product-owner': this.PRODUCT_OWNER
     }
@@ -79,5 +56,4 @@ export default class ProfileService {
     getCapexOpexDistribution(profile) {
         return this.CAPEX_OPEX_DISTRIBUTION[profile]
     }
-
 }
