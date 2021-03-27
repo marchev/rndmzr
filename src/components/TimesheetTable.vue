@@ -1,45 +1,47 @@
 <template>
   <section>
-        <b-table class="mt-5" :data="timesheetData" :opened-detailed="['Nitro']" :default-sort="['name', 'asc']" ref="table" detailed hoverable custom-detail-row detail-key="name" :show-detail-icon="true">
+        <b-table class="mt-5" :data="projects" :default-sort="['name', 'asc']" ref="table" detailed hoverable custom-detail-row detail-key="name" :show-detail-icon="true">
 
             <b-table-column field="project" label="Project" width="300" v-slot="props">
                 {{ props.row.name }}
             </b-table-column>
 
             <b-table-column v-for="weekDate in weekDates" :key="weekDate.format('dddd')" :label="weekDate.format('ddd, MMM D')" centered v-slot="props">
-                {{ props.row.sold }}
+                <span style="display:none">{{ props.row.name }}</span>
+                0:15
             </b-table-column>
 
             <b-table-column label="Total" centered v-slot="props">
+                <span style="display:none">{{ props.row.name }}</span>
                 <span :class="
                         [
                             'tag',
-                            {'is-danger': props.row.sold / props.row.available <= 0.45},
-                            {'is-success': props.row.sold / props.row.available > 0.45}
+                            {'is-danger': false },
+                            {'is-success': true }
                         ]">
-                    {{ Math.round((props.row.sold / props.row.available) * 100) }}%
+                    8:00
                 </span>
             </b-table-column>
 
             <template slot="detail" slot-scope="props">
-                <tr v-for="item in props.row.items" :key="item.name">
+                <tr v-for="task in props.row.tasks" :key="task.id">
                     <td></td>
-                    <td>{{ item.name }}</td>
-                    <td class="has-text-centered">{{ item.sold }}</td>
-                    <td class="has-text-centered">{{ item.sold + 1 }}</td>
-                    <td class="has-text-centered">{{ item.sold + 2 }}</td>
-                    <td class="has-text-centered">{{ item.sold + 3 }}</td>
-                    <td class="has-text-centered">{{ item.sold + 4 }}</td>
-                    <td class="has-text-centered">{{ item.sold + 5 }}</td>
-                    <td class="has-text-centered">{{ item.sold + 6 }}</td>
+                    <td>{{ task.name }}</td>
+                    <td class="has-text-centered">0:30</td>
+                    <td class="has-text-centered">0:30</td>
+                    <td class="has-text-centered">0:30</td>
+                    <td class="has-text-centered">0:30</td>
+                    <td class="has-text-centered">0:30</td>
+                    <td class="has-text-centered">0:30</td>
+                    <td class="has-text-centered">0:30</td>
                     <td class="has-text-centered">
                         <span :class="
-                            [
-                                'tag',
-                                {'is-danger': item.sold / item.available <= 0.45},
-                                {'is-success': item.sold / item.available > 0.45}
-                            ]">
-                            {{ Math.round((item.sold / item.available) * 100) }}%
+                                [
+                                    'tag',
+                                    {'is-danger': false },
+                                    {'is-success': true }
+                                ]">
+                            8:00
                         </span>
                     </td>
                 </tr>
@@ -49,12 +51,19 @@
 </template>
 
 <script>
+import { mapFields } from 'vuex-map-fields'
 import dayjs from 'dayjs'
 
 export default {
     name: 'TimesheetTable',
+    computed: {
+        ...mapFields([
+            'projects'
+        ])
+    },
     data () {
         return {
+            /*
             timesheetData: [
             {
                 name: 'Nitro',
@@ -148,6 +157,7 @@ export default {
                 ]
             }
             ]
+            */
         }
     },
     async created() {

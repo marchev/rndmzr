@@ -11,7 +11,7 @@
             field="title"
             :loading="isFetching"
             @typing="fetchProject"
-            @select="selected => addProject(selected)"
+            @select="project => addProjectWithTasks(project)"
             :keep-first="true">
 
             <template slot-scope="props">
@@ -38,11 +38,15 @@ export default {
     }
   },
   computed: {
-    ...mapFields(['userInfo', 'projects'])
+    ...mapFields([
+      'userInfo',
+      'projects'
+    ])
   },
   watch: {
     /* eslint-disable no-unused-vars */
     userInfo: async function (oldProjects, newProjects) {
+      // As soon as userInfo is available, we add the default non-removable BAU project
       await this.addNonRemovableBAUProject()
     }
   },
@@ -76,7 +80,13 @@ export default {
     async addNonRemovableBAUProject() {
       const [ bauProject ] = await this.findProjectsByName("BAU Placeholder")
       bauProject.unremovable = true
-      this.addProject(bauProject)
+      this.addProjectWithTasks(bauProject)
+    },
+    async addProjectWithTasks(project) {
+      let { data } = await this.$http.get(`/workspaces/${this.userInfo.activeWorkspace}/projects/${project.id}/tasks?is-active=true&page-size=200`)
+      const tasks = data.map(task => ({ id: task.id, name: task.name }))
+      project.tasks = tasks
+      this.addProject(project)
     }
   }
 }
