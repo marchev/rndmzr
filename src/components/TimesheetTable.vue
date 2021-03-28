@@ -10,11 +10,13 @@
 
             <b-table-column v-for="weekDate in weekDates" :key="weekDate.format('dddd')" :label="weekDate.format('ddd, MMM D')" centered v-slot="props">
                 <span style="display:none">{{ props.row.name }}</span>
-                0:15
+                &nbsp;
             </b-table-column>
 
             <b-table-column label="Total" centered v-slot="props">
                 <span style="display:none">{{ props.row.name }}</span>
+
+                <!--
                 <span :class="
                         [
                             'tag',
@@ -23,102 +25,18 @@
                         ]">
                     8:00
                 </span>
+                -->
             </b-table-column>
 
             <template slot="detail" slot-scope="props">
                 <tr v-for="task in props.row.tasks" :key="task.id">
                     <td></td>
                     <td>{{ task.name }}</td>
-                    <td class="has-text-centered">
-                        <b-field label="" class="ml-4 mr-4">
-                            <b-timepicker
-                                placeholder=""
-                                hour-format="24"
-                                icon="clock"
-                                size="is-small"
-                                :incrementMinutes="15"
-                                :incrementHours="1"
-                                >
-                            </b-timepicker>
-                        </b-field>
-                    </td>
-                    <td class="has-text-centered">
-                        <b-field label="" class="ml-4 mr-4">
-                            <b-timepicker
-                                placeholder=""
-                                hour-format="24"
-                                icon="clock"
-                                size="is-small"
-                                :incrementMinutes="15"
-                                :incrementHours="1"
-                                >
-                            </b-timepicker>
-                        </b-field>
-                    </td>
-                    <td class="has-text-centered">
-                        <b-field label="" class="ml-4 mr-4">
-                            <b-timepicker
-                                placeholder=""
-                                hour-format="24"
-                                icon="clock"
-                                size="is-small"
-                                :incrementMinutes="15"
-                                :incrementHours="1"
-                                >
-                            </b-timepicker>
-                        </b-field>
-                    </td>
-                    <td class="has-text-centered">
-                        <b-field label="" class="ml-4 mr-4">
-                            <b-timepicker
-                                placeholder=""
-                                hour-format="24"
-                                icon="clock"
-                                size="is-small"
-                                :incrementMinutes="15"
-                                :incrementHours="1"
-                                >
-                            </b-timepicker>
-                        </b-field>
-                    </td>
-                    <td class="has-text-centered">
-                        <b-field label="" class="ml-4 mr-4">
-                            <b-timepicker
-                                placeholder=""
-                                hour-format="24"
-                                icon="clock"
-                                size="is-small"
-                                :incrementMinutes="15"
-                                :incrementHours="1"
-                                >
-                            </b-timepicker>
-                        </b-field>
-                    </td>
-                    <td class="has-text-centered">
-                        <b-field label="" class="ml-4 mr-4">
-                            <b-timepicker
-                                placeholder=""
-                                hour-format="24"
-                                icon="clock"
-                                size="is-small"
-                                :incrementMinutes="15"
-                                :incrementHours="1"
-                                >
-                            </b-timepicker>
-                        </b-field>
-                    </td>
-                    <td class="has-text-centered">
-                        <b-field label="" class="ml-4 mr-4">
-                            <b-timepicker
-                                placeholder=""
-                                hour-format="24"
-                                icon="clock"
-                                size="is-small"
-                                :incrementMinutes="15"
-                                :incrementHours="1"
-                                >
-                            </b-timepicker>
-                        </b-field>
+                    <td v-for="index in 7" :key="index" class="has-text-centered">
+                        <div class="duration-picker mx-4">
+                            <duration-picker v-model="timeEntries[index][task.id]">
+                            </duration-picker>
+                        </div>
                     </td>
                     <td class="has-text-centered">
                         <span :class="
@@ -136,18 +54,28 @@
         <div id="profile-tasks-switch" class="mt-5">
             <b-switch v-model="showProfileTasksOnly" type="is-success">Show profile tasks only</b-switch>
         </div>
+        <pre>
+            {{ timeEntries }}
+        </pre>
   </section>
 </template>
 
 <script>
-import { mapFields } from 'vuex-map-fields'
 import dayjs from 'dayjs'
+import duration from 'dayjs/plugin/duration'
+import { mapFields } from 'vuex-map-fields'
 import ProfileService from '../services/profile-service'
 
+import DurationPicker from './util/DurationPicker.vue'
+
+dayjs.extend(duration)
 const profileService = new ProfileService()
 
 export default {
     name: 'TimesheetTable',
+    components: {
+        DurationPicker
+    },
     computed: {
         ...mapFields([
             'projects',
@@ -165,6 +93,7 @@ export default {
     },
     data () {
         return {
+            timeEntries: {},
             capexOpexDistribution: {},
             showProfileTasksOnly: true
         }
@@ -172,6 +101,12 @@ export default {
     created() {
         this.weekDates = this.getWeekDates()
         this.capexOpexDistribution = profileService.getCapexOpexDistribution(this.profile)
+        this.initTimeEntries(this.projects)
+    },
+    watch: {
+        projects: function (projects) {
+            this.initTimeEntries(projects)
+        }
     },
     methods: {
         toggle(row) {
@@ -179,7 +114,7 @@ export default {
         },
         getWeekDates() {
             return Array.from({length: 7}, (_, i) => i + 1)
-                .map(i => dayjs().day(i))
+                .map(i => dayjs().startOf('week').day(i))
         },
         isProfileTask(task) {
             for (let i = 0; i < this.capexOpexDistribution.tasks.length; i++) {
@@ -188,6 +123,32 @@ export default {
                 }
             }
             return false
+        },
+        initTimeEntries(projects) {
+            const allProjectsTasks = []
+            projects.forEach(project => {
+                project.tasks.forEach(task => allProjectsTasks.push(task.id))
+            })
+
+            for (let i = 1; i <= 7; i++) {
+                if (!this.timeEntries[i]) {
+                    this.$set(this.timeEntries, i, {})
+                }
+
+                // Add new tasks
+                allProjectsTasks.forEach(taskId => {
+                    if (!this.timeEntries[i][taskId]) {
+                        this.$set(this.timeEntries[i], taskId, dayjs.duration())
+                    }
+                })
+
+                // Remove dangling tasks
+                for (const [key] of Object.entries(this.timeEntries[i])) {
+                    if (!allProjectsTasks.includes(key)) {
+                        this.$delete(this.timeEntries[i], key)
+                    }
+                }
+            }
         }
     }
 }

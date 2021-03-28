@@ -11,15 +11,19 @@
 <script>
 import { mapFields } from 'vuex-map-fields'
 
+//import Loading from '../components/Loading.vue'
 import Navigation from '../components/Navigation.vue'
 import MyProjects from '../components/MyProjects.vue'
 import TimesheetTable from '../components/TimesheetTable.vue'
 
 export default {
   name: 'App',
-  components: { Navigation, TimesheetTable, MyProjects },
+  components: {
+    Navigation,
+    MyProjects,
+    TimesheetTable
+  },
   async created() {
-    console.log(`Fetching userInfo`)
     this.userInfo = await this.fetchUserInfo()
   },
   computed: {
