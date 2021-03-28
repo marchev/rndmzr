@@ -27,9 +27,6 @@ export default {
     props: {
         'value': Object
     },
-    created() {
-        console.log(this.value)
-    },
     computed: {
         buefyTimepickerBridge: {
             // Duration to JS Date

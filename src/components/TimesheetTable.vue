@@ -13,50 +13,43 @@
                 &nbsp;
             </b-table-column>
 
-            <b-table-column label="Total" centered v-slot="props">
-                <span style="display:none">{{ props.row.name }}</span>
-
-                <!--
-                <span :class="
-                        [
-                            'tag',
-                            {'is-danger': false },
-                            {'is-success': true }
-                        ]">
-                    8:00
-                </span>
-                -->
-            </b-table-column>
-
             <template slot="detail" slot-scope="props">
                 <tr v-for="task in props.row.tasks" :key="task.id">
                     <td></td>
                     <td>{{ task.name }}</td>
                     <td v-for="index in 7" :key="index" class="has-text-centered">
-                        <div class="duration-picker mx-4">
+                        <div class="duration-picker mx-3 px-1">
                             <duration-picker v-model="timeEntries[index][task.id]">
                             </duration-picker>
                         </div>
                     </td>
-                    <td class="has-text-centered">
+                </tr>
+            </template>
+
+            <template #footer>
+                <th class="is-hidden-mobile">
+                    <div class="th-wrap is-numeric">&nbsp;</div>
+                </th>
+                <th class="is-hidden-mobile">
+                    <div class="th-wrap">Total:</div>
+                </th>
+                <th v-for="index in 7" :key="index" class="is-hidden-mobile">
+                    <div class="th-wrap is-centered">
                         <span :class="
                                 [
                                     'tag',
-                                    {'is-danger': false },
-                                    {'is-success': true }
+                                    {'is-danger': dayTotals[index].asHours() < 8 },
+                                    {'is-success': dayTotals[index].asHours() >= 8 }
                                 ]">
-                            8:00
+                            {{ dayTotals[index].format('H:mm') }}
                         </span>
-                    </td>
-                </tr>
+                    </div>
+                </th>
             </template>
         </b-table>
         <div id="profile-tasks-switch" class="mt-5">
             <b-switch v-model="showProfileTasksOnly" type="is-success">Show profile tasks only</b-switch>
         </div>
-        <pre>
-            {{ timeEntries }}
-        </pre>
   </section>
 </template>
 
@@ -89,6 +82,17 @@ export default {
         },
         projectIds: function () {
             return this.projects.map(project => project.id)
+        },
+        dayTotals: function () {
+            const totals = []
+
+            for (let i = 1; i <= 7; i++) {
+                const dayTaskEntries = this.timeEntries[i]
+                const total = Object.values(dayTaskEntries).reduce((prev, current) => prev.add(current), dayjs.duration(0))
+                totals[i] = total
+            }
+
+            return totals
         }
     },
     data () {
@@ -138,7 +142,7 @@ export default {
                 // Add new tasks
                 allProjectsTasks.forEach(taskId => {
                     if (!this.timeEntries[i][taskId]) {
-                        this.$set(this.timeEntries[i], taskId, dayjs.duration())
+                        this.$set(this.timeEntries[i], taskId, dayjs.duration(0))
                     }
                 })
 
