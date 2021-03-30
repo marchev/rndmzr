@@ -1,13 +1,14 @@
 import axios from 'axios'
+import rateLimit from 'axios-rate-limit'
 
-const httpClient = axios.create({
+const httpClient = rateLimit(axios.create({
     baseURL: 'https://api.clockify.me/api/v1',
     timeout: 5000,
     headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
     }
-});
+}), { maxRPS: 10 });
 
 httpClient.interceptors.request.use(
     async config => {

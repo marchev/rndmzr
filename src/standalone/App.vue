@@ -11,7 +11,6 @@
 <script>
 import { mapFields } from 'vuex-map-fields'
 
-//import Loading from '../components/Loading.vue'
 import Navigation from '../components/Navigation.vue'
 import MyProjects from '../components/MyProjects.vue'
 import TimesheetTable from '../components/TimesheetTable.vue'

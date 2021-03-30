@@ -84,9 +84,16 @@ export default {
     },
     async addProjectWithTasks(project) {
       let { data } = await this.$http.get(`/workspaces/${this.userInfo.activeWorkspace}/projects/${project.id}/tasks?is-active=true&page-size=200`)
-      const tasks = data.map(task => ({ id: task.id, name: task.name }))
+      const tasks = data.map(task => ({
+        id: task.id,
+        name: task.name,
+        type: this.getTaskType(task.name)
+      }))
       project.tasks = tasks
       this.addProject(project)
+    },
+    getTaskType(taskName) {
+      return taskName.toLowerCase().includes('capex') ? 'capex' : 'opex'
     }
   }
 }

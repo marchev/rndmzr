@@ -1,6 +1,5 @@
 <template>
     <b-field label="">
-        <!-- v-model="timeEntries[index][task.id]" -->
         <b-timepicker
             placeholder=""
             hour-format="24"

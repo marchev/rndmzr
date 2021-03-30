@@ -1,59 +1,57 @@
-import 'chrome-extension-async/chrome-extension-async'
-
 export default class ProfileService {
 
     ENGINEERING_MANAGER = {
         distribution: {
-            capex: 65,
-            opex: 35
+            capex: 315, // minutes per day
+            opex: 165 // minutes per day
         },
         tasks: [
             // CAPEX
-            { name: 'Execution - Business requirement, Software, Database and Technical Design (CAPEX)', type: 'capex' },
-            { name: 'Execution - Technical Requirements (CAPEX)', type: 'capex' },
-            { name: 'Execution - Daily Standup, sprint planning, demos, and retrospective (CAPEX)', type: 'capex' },
-            { name: 'Execution - Software coding, code review and approval (CAPEX)', type: 'capex' },
-            { name: 'Execution - Software Release Management (CAPEX)', type: 'capex' },
-            { name: 'Execution - Testing (CAPEX)', type: 'capex' },
+            'Execution - Business requirement, Software, Database and Technical Design (CAPEX)',
+            'Execution - Technical Requirements (CAPEX)',
+            'Execution - Daily Standup, sprint planning, demos, and retrospective (CAPEX)',
+            'Execution - Software coding, code review and approval (CAPEX)',
+            'Execution - Software Release Management (CAPEX)',
+            'Execution - Testing (CAPEX)',
             // OPEX
-            { name: 'Admin - 1-1 Meetings, Team meetings, Townhalls (OPEX)', type: 'opex' },
-            { name: 'Admin - Hiring (OPEX)', type: 'capex' },
-            { name: 'Admin - Internal Paysafe Training (OPEX)', type: 'capex' },
+            'Admin - 1-1 Meetings, Team meetings, Townhalls (OPEX)',
+            'Admin - Hiring (OPEX)',
+            'Admin - Internal Paysafe Training (OPEX)'
         ]
     }
 
     AGILE_DELIVERY_LEAD = {
         distribution: {
-            capex: 40,
-            opex: 60
+            capex: 195, // minutes per day
+            opex: 285 // minutes per day
         },
         tasks: []
     }
 
     ARCHITECT = {
         distribution: {
-            capex: 95,
-            opex: 5
+            capex: 450, // minutes per day
+            opex: 30 // minutes per day
         },
         tasks: []
     }
 
     PRODUCT_OWNER = {
         distribution: {
-            capex: 90,
-            opex: 10
+            capex: 435, // minutes per day
+            opex: 45 // minutes per day
         },
         tasks: []
     }
 
-    CAPEX_OPEX_DISTRIBUTION = {
+    DISTRIBUTION_PROFILE = {
         'engineering-manager': this.ENGINEERING_MANAGER,
         'agile-delivery-lead': this.AGILE_DELIVERY_LEAD,
         'architect': this.ARCHITECT,
         'product-owner': this.PRODUCT_OWNER
     }
 
-    getCapexOpexDistribution(profile) {
-        return this.CAPEX_OPEX_DISTRIBUTION[profile]
+    getDistributionProfile(profile) {
+        return this.DISTRIBUTION_PROFILE[profile]
     }
 }
