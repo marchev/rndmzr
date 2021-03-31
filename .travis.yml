@@ -1,0 +1,16 @@
+_build_scripts: &_build_scripts
+  - yarn build
+
+cache:
+  yarn: true
+  directories:
+    - node_modules
+
+language: node_js
+node_js:
+  - 14
+
+jobs:
+  include:
+    - stage: build
+      script: *_build_scripts
