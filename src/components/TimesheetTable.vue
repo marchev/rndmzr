@@ -9,7 +9,7 @@
             <b-button @click="submit()" type="is-danger">Submit</b-button>
             </div>
         </div>
-        <b-table class="" paginated pagination-simple backend-pagination :data="showProfileTasksOnly ? timesheetProjects : projects" :default-sort="['name', 'asc']" ref="table" detailed hoverable custom-detail-row detail-key="id" :opened-detailed="projectIds" :show-detail-icon="true">
+        <b-table class="mb-6" pagination-position="top" paginated pagination-simple backend-pagination :per-page="numOfProjects" :total="totalPaginationData" :current-page="currentPage" @page-change="pageNum => onPageChange(pageNum)" :data="showProfileTasksOnly ? timesheetProjects : projects" :default-sort="['name', 'asc']" ref="table" detailed hoverable custom-detail-row detail-key="id" :opened-detailed="projectIds" :show-detail-icon="true">
 
             <b-table-column field="project" label="Project" width="300" v-slot="props">
                 <span class="has-text-weight-bold">
@@ -56,7 +56,7 @@
                     </div>
                 </th>
             </template>
-            <template #bottom-left>
+            <template #top-left>
                 <div id="profile-tasks-switch" class="has-text-weight-semibold">
                     <b-switch v-model="showProfileTasksOnly" type="is-success">Show profile tasks only</b-switch>
                 </div>
@@ -92,15 +92,19 @@ dayjs.extend(duration)
 const profileService = new ProfileService()
 const timesheetGeneratorService = new TimesheetGeneratorService()
 
+const WEEKS_SUPPORTED = 52
+
 export default {
     name: 'TimesheetTable',
     components: { DurationPicker },
     data () {
         return {
-            isLoading: false,
+            weekDates: [],
             timeEntries: {},
             distributionProfile: {},
-            showProfileTasksOnly: true
+            showProfileTasksOnly: true,
+            previousPage: WEEKS_SUPPORTED,
+            isLoading: false,
         }
     },
     computed: {
@@ -109,6 +113,15 @@ export default {
             'projects',
             'profile'
         ]),
+        numOfProjects: function () {
+            return this.projects.length
+        },
+        totalPaginationData: function () {
+            return this.numOfProjects * WEEKS_SUPPORTED * 2 // 1 year back - 1 year ahead
+        },
+        currentPage: function () {
+            return WEEKS_SUPPORTED
+        },
         timesheetProjects: function () {
             return this.projects.map(project => ({
                 ...project,
@@ -153,7 +166,7 @@ export default {
         }
     },
     created() {
-        this.weekDates = this.getWeekDates()
+        this.initWeekDates()
         this.distributionProfile = profileService.getDistributionProfile(this.profile)
         this.initTimeEntries(this.projects)
     },
@@ -165,6 +178,12 @@ export default {
     methods: {
         toggle(row) {
             this.$refs.table.toggleDetails(row)
+        },
+        initWeekDates() {
+            const wd = this.getWeekDates()
+            for (let i = 0; i < wd.length; i++) {
+                this.$set(this.weekDates, i, wd[i])
+            }
         },
         getWeekDates() {
             return Array.from({length: 7}, (_, i) => i + 1)
@@ -270,7 +289,8 @@ export default {
                                     }, {})
 
             const workDayStart = 10
-            let timeToStartNextEntry = dayjs().day(dayIndex).hour(workDayStart).minute(0).second(0).millisecond(0)
+            let timeToStartNextEntry = this.weekDates[0].startOf('week').day(dayIndex).hour(workDayStart)
+            // NASTY HACK ALERT!!1 ☝️
 
             Object.entries(dayEntries).forEach(([taskId, duration]) => {
                 const start = timeToStartNextEntry
@@ -293,6 +313,31 @@ export default {
                 const response = await this.$http.post(`/workspaces/${this.userInfo.activeWorkspace}/time-entries`, clockifyEntry)
                 console.log(`${response.status} for ${JSON.stringify(clockifyEntry)}`)
             }
+            // Actual submit
+            // const beginningOfWeek = this.weekDates[0].toISOString()
+            // const approvalRequest = {
+            //     weekTime: beginningOfWeek
+            // }
+            // try {
+            //     const approvalRequestResp = await this.$http.post(`https://global.api.clockify.me/workspaces/${this.userInfo.activeWorkspace}/users/${this.userInfo.id}/approval-requests/`, approvalRequest)
+            //     console.log(`Approval request status code: ${approvalRequestResp.status}`)
+            // } catch (err) {
+            //     if (err.response) {
+            //         console.log(err.response.data);
+            //         console.log(err.response.status);
+            //         console.log(err.response.headers);
+            //     }
+            // } finally {
+            //     this.isLoading = false
+            // }
+        },
+        onPageChange(currentPage) {
+            this.reset()
+            const weekAheadOrBehind = currentPage - this.previousPage
+            for (let i = 0; i < 7; i++) {
+                this.$set(this.weekDates, i, this.weekDates[i].add(weekAheadOrBehind, 'week'))
+            }
+            this.previousPage = currentPage
         }
     }
 }

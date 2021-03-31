@@ -25,7 +25,16 @@ export default class ProfileService {
             capex: 195, // minutes per day
             opex: 285 // minutes per day
         },
-        tasks: []
+        tasks: [
+            // CAPEX
+            'Execution - Business requirement, Software, Database and Technical Design (CAPEX)',
+            'Execution - Technical Requirements (CAPEX)',
+            // OPEX
+            'Production - KPI / Benefits Tracking (OPEX)',
+            'KPI / Benefits Tracking (OPEX)',
+            'Admin - 1-1 Meetings, Team meetings, Townhalls (OPEX)',
+            'Admin - Internal Paysafe Training (OPEX)'
+        ]
     }
 
     ARCHITECT = {
