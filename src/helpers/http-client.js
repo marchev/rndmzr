@@ -3,7 +3,7 @@ import rateLimit from 'axios-rate-limit'
 
 const httpClient = rateLimit(axios.create({
     baseURL: 'https://api.clockify.me/api/v1',
-    timeout: 5000,
+    timeout: 10000,
     headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'

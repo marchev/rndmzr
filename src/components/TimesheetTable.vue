@@ -82,12 +82,14 @@ nav.pagination small {
 <script>
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
+import utc from 'dayjs/plugin/utc'
 import { mapFields } from 'vuex-map-fields'
 import ProfileService from '../services/profile-service'
 import TimesheetGeneratorService from '../services/timesheet-generator-service'
 import DurationPicker from './util/DurationPicker.vue'
 
 dayjs.extend(duration)
+dayjs.extend(utc)
 
 const profileService = new ProfileService()
 const timesheetGeneratorService = new TimesheetGeneratorService()
@@ -271,14 +273,6 @@ export default {
 
             await this.submitClockifyEntries(clockifyEntries)
             this.isLoading = false
-
-            this.$buefy.snackbar.open({
-                    message: 'Your timesheet has been submitted successfully',
-                    type: 'is-success',
-                    position: 'is-top',
-                    actionText: 'OK',
-                    duration: 5000
-                })
         },
         createClockifyTimeEntries(day) {
             const clockifyDayEntries = []
@@ -316,23 +310,38 @@ export default {
                 const response = await this.$http.post(`/workspaces/${this.userInfo.activeWorkspace}/time-entries`, clockifyEntry)
                 console.log(`${response.status} for ${JSON.stringify(clockifyEntry)}`)
             }
-            // Actual submit
-            // const beginningOfWeek = this.weekDates[0].toISOString()
-            // const approvalRequest = {
-            //     weekTime: beginningOfWeek
-            // }
-            // try {
-            //     const approvalRequestResp = await this.$http.post(`https://global.api.clockify.me/workspaces/${this.userInfo.activeWorkspace}/users/${this.userInfo.id}/approval-requests/`, approvalRequest)
-            //     console.log(`Approval request status code: ${approvalRequestResp.status}`)
-            // } catch (err) {
-            //     if (err.response) {
-            //         console.log(err.response.data);
-            //         console.log(err.response.status);
-            //         console.log(err.response.headers);
-            //     }
-            // } finally {
-            //     this.isLoading = false
-            // }
+            
+            const localWeekStart = this.weekDates[0]
+            const beginningOfWeek = dayjs().utc().date(localWeekStart.date()).month(localWeekStart.month()).year(localWeekStart.year()).toISOString()
+            const approvalRequest = {
+                weekTime: beginningOfWeek
+            }
+            try {
+                const approvalRequestResp = await this.$http.post(`https://global.api.clockify.me/workspaces/${this.userInfo.activeWorkspace}/users/${this.userInfo.id}/approval-requests/`, approvalRequest)
+                console.log(`Approval request status code: ${approvalRequestResp.status} body=${JSON.stringify(approvalRequest)}`)
+                this.$buefy.snackbar.open({
+                        message: 'Your timesheet has been submitted successfully',
+                        type: 'is-success',
+                        position: 'is-top',
+                        actionText: 'OK',
+                        duration: 5000
+                    })
+            } catch (err) {
+                this.$buefy.snackbar.open({
+                        message: 'Error occurred during timesheet submission, please check status in the Clockify App',
+                        type: 'is-danger',
+                        position: 'is-top',
+                        actionText: 'OK',
+                        duration: 5000
+                    })
+                if (err.response) {
+                    console.log(err.response.data);
+                    console.log(err.response.status);
+                    console.log(err.response.headers);
+                }
+            } finally {
+                this.isLoading = false
+            }
         },
         onPageChange(currentPage) {
             this.reset()
