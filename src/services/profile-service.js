@@ -42,7 +42,16 @@ export default class ProfileService {
             capex: 450, // minutes per day
             opex: 30 // minutes per day
         },
-        tasks: []
+        tasks: [
+            // CAPEX
+            'Execution - Business requirement, Software, Database and Technical Design (CAPEX)',
+            'Execution - Technical Requirements (CAPEX)',
+            'Execution - Daily Standup, sprint planning, demos, and retrospective (CAPEX)',
+            'Execution - Software coding, code review and approval (CAPEX)',
+            // OPEX
+            'Admin - 1-1 Meetings, Team meetings, Townhalls (OPEX)',
+            'Admin - Internal Paysafe Training (OPEX)'
+        ]
     }
 
     PRODUCT_OWNER = {
@@ -50,7 +59,17 @@ export default class ProfileService {
             capex: 435, // minutes per day
             opex: 45 // minutes per day
         },
-        tasks: []
+        tasks: [
+            // CAPEX
+            'Execution - Business requirement, Software, Database and Technical Design (CAPEX)',
+            'Execution - Daily Standup, sprint planning, demos, and retrospective (CAPEX)',
+            'Execution - Testing (CAPEX)',
+            // OPEX
+            'Business planning, gathering and analysis (OPEX)',
+            'KPI / Benefits Tracking (OPEX)',
+            'Admin - 1-1 Meetings, Team meetings, Townhalls (OPEX)',
+            'Admin - Internal Paysafe Training (OPEX)'
+        ]
     }
 
     DISTRIBUTION_PROFILE = {

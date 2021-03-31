@@ -6,7 +6,7 @@
             <b-button @click="reset()" type="is-light">Reset</b-button>
             </div>
             <div class="column has-text-right">
-            <b-button @click="submit()" type="is-danger">Submit</b-button>
+            <b-button :disabled="isTimesheetEmpty" @click="submit()" type="is-danger">Submit</b-button>
             </div>
         </div>
         <b-table class="mb-6" pagination-position="top" paginated pagination-simple backend-pagination :per-page="numOfProjects" :total="totalPaginationData" :current-page="currentPage" @page-change="pageNum => onPageChange(pageNum)" :data="showProfileTasksOnly ? timesheetProjects : projects" :default-sort="['name', 'asc']" ref="table" detailed hoverable custom-detail-row detail-key="id" :opened-detailed="projectIds" :show-detail-icon="true">
@@ -163,6 +163,9 @@ export default {
             }
 
             return totalsPerProject
+        },
+        isTimesheetEmpty: function () {
+            return this.dayTotals.reduce((a, b) => a.add(b), dayjs.duration(0)).asMinutes() == 0
         }
     },
     created() {
