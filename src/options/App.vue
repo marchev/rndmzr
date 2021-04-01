@@ -14,6 +14,13 @@
             <b-input style="font-familty:monospace !important" placeholder="Paste your API key here..." icon="key" v-model="apiKeyValue">
             </b-input>
         </b-field>
+        <b-field label="Soft Submit">
+          <b-tooltip multilined label="Only creates time entries without submitting them for approval"
+            position="is-right">
+            <b-switch v-model="softSubmit" type="is-default">
+            </b-switch>
+          </b-tooltip>
+        </b-field>
         <div class="has-text-right">
           <b-button type="is-primary" class="my-2" @click="saveSettings">Save</b-button>
         </div>
@@ -29,7 +36,8 @@ export default {
   computed: {
     ...mapFields([
       'profile',
-      'apiKey'
+      'apiKey',
+      'softSubmit'
     ])
   },
   data () {

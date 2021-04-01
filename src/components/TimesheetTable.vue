@@ -113,7 +113,8 @@ export default {
         ...mapFields([
             'userInfo',
             'projects',
-            'profile'
+            'profile',
+            'softSubmit'
         ]),
         numOfProjects: function () {
             return this.projects.length
@@ -317,8 +318,10 @@ export default {
                 weekTime: beginningOfWeek
             }
             try {
-                const approvalRequestResp = await this.$http.post(`https://global.api.clockify.me/workspaces/${this.userInfo.activeWorkspace}/users/${this.userInfo.id}/approval-requests/`, approvalRequest)
-                console.log(`Approval request status code: ${approvalRequestResp.status} body=${JSON.stringify(approvalRequest)}`)
+                if (!this.softSubmit) {
+                    const approvalRequestResp = await this.$http.post(`https://global.api.clockify.me/workspaces/${this.userInfo.activeWorkspace}/users/${this.userInfo.id}/approval-requests/`, approvalRequest)
+                    console.log(`Approval request status code: ${approvalRequestResp.status} body=${JSON.stringify(approvalRequest)}`)
+                }
                 this.$buefy.snackbar.open({
                         message: 'Your timesheet has been submitted successfully',
                         type: 'is-success',
