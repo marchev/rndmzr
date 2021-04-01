@@ -324,7 +324,7 @@ export default {
                         type: 'is-success',
                         position: 'is-top',
                         actionText: 'OK',
-                        duration: 5000
+                        indefinite: true
                     })
             } catch (err) {
                 this.$buefy.snackbar.open({
@@ -332,7 +332,7 @@ export default {
                         type: 'is-danger',
                         position: 'is-top',
                         actionText: 'OK',
-                        duration: 5000
+                        indefinite: true
                     })
                 if (err.response) {
                     console.log(err.response.data);
