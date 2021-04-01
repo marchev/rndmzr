@@ -8,6 +8,7 @@
             :incrementMinutes="15"
             :incrementHours="1"
             v-model="buefyTimepickerBridge"
+            :time-formatter="formatTime"
             >
         </b-timepicker>
     </b-field>
@@ -16,10 +17,12 @@
 <script>
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
+import utc from 'dayjs/plugin/utc'
 import objectSupport from 'dayjs/plugin/objectSupport'
 
-dayjs.extend(objectSupport)
 dayjs.extend(duration)
+dayjs.extend(utc)
+dayjs.extend(objectSupport)
 
 export default {
     name: 'DurationPicker',
@@ -42,6 +45,11 @@ export default {
                         minutes: v.getMinutes()
                 }))
             }
+        }
+    },
+    methods: {
+        formatTime(time) {
+            return dayjs(time).format('HH:mm')
         }
     }
 }
