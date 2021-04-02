@@ -2,7 +2,12 @@
   <section>
     <h1 class="is-size-3 mt-4 mb-4">My projects</h1>
     <b-taglist>
-      <b-tag v-for="project in projects" :key="project.id" type="is-info" size="is-medium" :closable="!project.unremovable" @close="removeProject(project)">{{ project.name }}</b-tag>
+      <b-tag v-for="project in projects"
+          :key="project.id"
+          type="is-info"
+          size="is-medium"
+          :closable="!project.unremovable"
+          @close="removeProject(project)">{{ project.name }}</b-tag>
     </b-taglist>
     <b-field label="Search projects">
         <b-autocomplete

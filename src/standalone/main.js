@@ -4,6 +4,7 @@ import 'buefy/dist/buefy.css'
 import App from './App.vue'
 import store from '../store'
 import httpClient from '../helpers/http-client'
+import ClockifyService from '../services/clockify-service'
 
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from "@fortawesome/free-solid-svg-icons";
@@ -32,8 +33,12 @@ Vue.use(Buefy, {
   }
 })
 
+// Init Clockify service
+const clockify = new ClockifyService(httpClient)
+
 // Inject httpClient into $http 
 Vue.prototype.$http = httpClient
+Vue.prototype.$clockify = clockify
 
 /* eslint-disable no-new */
 new Vue({

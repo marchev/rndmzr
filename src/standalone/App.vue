@@ -26,19 +26,12 @@ export default {
     MissingConfig
   },
   async created() {
-    MissingConfig
-    this.userInfo = await this.fetchUserInfo()
+    this.userInfo = await this.$clockify.getUserInfo()
   },
   computed: {
     ...mapFields([
       'userInfo'
     ])
-  },
-  methods: {
-    async fetchUserInfo() {
-      const { data } = await this.$http.get('/user')
-      return data
-    }
   }
 }
 </script>
