@@ -15,8 +15,8 @@
             placeholder="Start typing project name here..."
             field="title"
             :loading="isFetching"
-            @typing="fetchProject"
-            @select="project => addProjectWithTasks(project)"
+            @typing="fetchProjects"
+            @select="project => addProjectToMyProjects(project)"
             :keep-first="true">
 
             <template slot-scope="props">
@@ -42,17 +42,22 @@ export default {
         foundProjects: []
     }
   },
+  watch: {
+    /* eslint-disable no-unused-vars */
+    userInfo: async function (_, __) {
+      // As soon as userInfo is available, we add the default BAU project if projects are empty
+      if (!this.projects.length) {
+        await this.addBAUProject()
+      }
+    }
+  },
   computed: {
     ...mapFields([
       'userInfo',
       'projects'
-    ])
-  },
-  watch: {
-    /* eslint-disable no-unused-vars */
-    userInfo: async function (oldProjects, newProjects) {
-      // As soon as userInfo is available, we add the default non-removable BAU project
-      await this.addNonRemovableBAUProject()
+    ]),
+    workspace: function () {
+      return this.userInfo.activeWorkspace
     }
   },
   methods: {
@@ -60,7 +65,7 @@ export default {
       'addProject',
       'removeProject'
     ]),
-    fetchProject: debounce(async function (name) {
+    fetchProjects: debounce(async function (name) {
         if (!name.length) {
             this.foundProjects = []
             return
@@ -69,7 +74,7 @@ export default {
         try {
           this.isFetching = true
           this.foundProjects = []
-          const projects = await this.findProjectsByName(name)
+          const projects = await this.$clockify.findProjectsByName(this.workspace, name)
           projects.forEach(project => this.foundProjects.push(project))
         } catch (err) {
           this.foundProjects = []
@@ -78,27 +83,19 @@ export default {
           this.isFetching = false
         }
     }, 500),
-    async findProjectsByName(name) {
-      let { data } = await this.$http.get(`/workspaces/${this.userInfo.activeWorkspace}/projects?name=${name}`)
-      return data.map(project => ({ id: project.id, name: project.name }))
-    },
-    async addNonRemovableBAUProject() {
-      const [ bauProject ] = await this.findProjectsByName("BAU Placeholder")
+    async addBAUProject() {
+      const [ bauProject ] = await this.$clockify.findProjectsByName(this.workspace, "BAU Placeholder")
       bauProject.unremovable = true
-      this.addProjectWithTasks(bauProject)
+      this.addProjectToMyProjects(bauProject)
     },
-    async addProjectWithTasks(project) {
-      let { data } = await this.$http.get(`/workspaces/${this.userInfo.activeWorkspace}/projects/${project.id}/tasks?is-active=true&page-size=200`)
-      const tasks = data.map(task => ({
+    async addProjectToMyProjects(project) {
+      const tasks = (await this.$clockify.getProjectTasks(this.workspace, project.id)).map(task => ({
         id: task.id,
         name: task.name,
-        type: this.getTaskType(task.name)
+        type: this.$clockify.getTaskType(task.name)
       }))
       project.tasks = tasks
       this.addProject(project)
-    },
-    getTaskType(taskName) {
-      return taskName.toLowerCase().includes('capex') ? 'capex' : 'opex'
     }
   }
 }
