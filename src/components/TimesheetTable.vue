@@ -9,16 +9,39 @@
             <b-button :disabled="isTimesheetEmpty" @click="submit()" type="is-danger">Submit</b-button>
             </div>
         </div>
-        <b-table class="mb-6" pagination-position="top" paginated pagination-simple backend-pagination :per-page="numOfProjects" :total="totalPaginationData" :current-page="currentPage" @page-change="pageNum => onPageChange(pageNum)" :data="showProfileTasksOnly ? timesheetProjects : projects" :default-sort="['name', 'asc']" ref="table" detailed hoverable custom-detail-row detail-key="id" :opened-detailed="projectIds" :show-detail-icon="true">
+        <b-table class="mb-6"
+            :data="showProfileTasksOnly ? timesheetProjects : projects"
+            :default-sort="['name', 'asc']"
+            ref="table"
+            detailed
+            hoverable
+            custom-detail-row
+            detail-key="id"
+            :opened-detailed="projectIds"
+            :show-detail-icon="true"
+            paginated
+            pagination-position="top"
+            pagination-simple
+            backend-pagination
+            :per-page="numOfProjects"
+            :total="totalPaginationData"
+            :current-page="currentPage"
+            @page-change="newPage => onPageChange(newPage)">
 
-            <b-table-column field="project" label="Project" width="300" v-slot="props">
+            <b-table-column field="project" label="Project" width="300" v-slot="project">
                 <span class="has-text-weight-bold">
-                    {{ props.row.name }}
+                    {{ project.row.name }}
                 </span>
             </b-table-column>
 
-            <b-table-column v-for="(weekDate, index) in weekDates" :key="weekDate.format('dddd')" :label="weekDate.format('ddd, MMM D')" centered v-slot="props">
-                <b-tag type="is-light has-text-weight-semibold">{{ dayTotalsPerProject[index+1][props.row.id].format('H:mm') }}</b-tag>
+            <b-table-column v-for="(weekDate, index) in weekDates"
+                :key="weekDate | weekday"
+                :label="weekDate | fulldate"
+                centered
+                v-slot="project">
+                <b-tag type="is-light has-text-weight-semibold">
+                    {{ dayTotalsPerProject[index+1][project.row.id] | hoursCount }}
+                </b-tag>
             </b-table-column>
 
             <template slot="detail" slot-scope="props">
@@ -51,7 +74,7 @@
                                     {'is-light': index > 5 && dayTotals[index].asMinutes() === 0 },
                                     {'is-warning': index > 5 && dayTotals[index].asMinutes() > 0 }
                                 ]">
-                            {{ dayTotals[index].format('H:mm') }}
+                            {{ dayTotals[index] | hoursCount }}
                         </span>
                     </div>
                 </th>
@@ -106,6 +129,7 @@ export default {
             distributionProfile: {},
             showProfileTasksOnly: true,
             previousPage: WEEKS_SUPPORTED,
+            currentPage: WEEKS_SUPPORTED,
             isLoading: false,
         }
     },
@@ -121,9 +145,6 @@ export default {
         },
         totalPaginationData: function () {
             return this.numOfProjects * WEEKS_SUPPORTED * 2 // 1 year back - 1 year ahead
-        },
-        currentPage: function () {
-            return WEEKS_SUPPORTED
         },
         timesheetProjects: function () {
             return this.projects.map(project => ({
@@ -186,14 +207,13 @@ export default {
             this.$refs.table.toggleDetails(row)
         },
         initWeekDates() {
-            const wd = this.getWeekDates()
-            for (let i = 0; i < wd.length; i++) {
-                this.$set(this.weekDates, i, wd[i])
-            }
-        },
-        getWeekDates() {
-            return Array.from({length: 7}, (_, i) => i + 1)
+            const rawWeekDates = Array.from({length: 7}, (_, i) => i + 1)
                 .map(i => dayjs().startOf('week').day(i))
+
+            const _this = this
+            rawWeekDates.forEach((weekDate, index) => {
+                _this.$set(_this.weekDates, index, weekDate)
+            })
         },
         isProfileTask(task) {
             for (const distProfileTask of this.distributionProfile.tasks) {
@@ -354,6 +374,11 @@ export default {
             }
             this.previousPage = currentPage
         }
+    },
+    filters: {
+        weekday: date => date.format('dddd'),
+        fulldate: date => date.format('ddd, MMM D'),
+        hoursCount: date => date.format('H:mm')
     }
 }
 </script>
