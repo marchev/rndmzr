@@ -5,8 +5,6 @@
   "description": "Randomized Clockify timesheets generator",
   "default_locale": "en",
   "permissions": [
-    "storage",
-    "unlimitedStorage",
     "https://api.clockify.me/",
     "https://global.api.clockify.me/",
     "https://api.keyvalue.xyz/"
