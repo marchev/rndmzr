@@ -1,8 +1,7 @@
+import dayjs from '@/helpers/dayjs'
+import { currentWeekStart } from '@/helpers/time-helpers'  
 import { Chance } from 'chance'
-import dayjs from 'dayjs'
-import duration from 'dayjs/plugin/duration'
 
-dayjs.extend(duration)
 const chance = new Chance()
 
 export default class TimesheetGeneratorService {
@@ -13,27 +12,29 @@ export default class TimesheetGeneratorService {
         const capexTasks = this.getProjectsTasksOfType(projects, 'capex')
         const opexTasks = this.getProjectsTasksOfType(projects, 'opex')
 
-        const weekTimesheet = {}
-        for (let i = 1; i <= 5; i++) {
-            console.log(`Generating timesheets for ${dayjs().day(i).format('dddd')}`)
-            weekTimesheet[i] = {
-                ...this.generateDayTimesheets(capex, capexTasks, 'CAPEX'),
-                ...this.generateDayTimesheets(opex, opexTasks, 'OPEX')
-            }
+        const timesheet = []
+        for (let dayIndex = 0; dayIndex <= 4; dayIndex++) { // Monday through Friday only
+            console.log(`Generating timesheets for ${currentWeekStart().add(dayIndex, 'day').format('dddd')}`)
+            timesheet[dayIndex] = []
+
+            const capexTimesheet = this.generateDayTimesheet(capex, capexTasks, 'CAPEX')
+            const opexTimesheet = this.generateDayTimesheet(opex, opexTasks, 'OPEX')
+            Object.entries(capexTimesheet).forEach(([taskId, duration]) => timesheet[dayIndex][taskId] = duration)
+            Object.entries(opexTimesheet).forEach(([taskId, duration]) => timesheet[dayIndex][taskId] = duration)
         }
 
-        return weekTimesheet
+        return timesheet
     }
 
     getProjectsTasksOfType = (projects, taskType) => (
         projects.flatMap(project => project.tasks).filter(task => taskType === task.type)
     )
 
-    generateDayTimesheets(minutesPerDay, tasks, note) {
-        const timesheet = {}
+    generateDayTimesheet(minutesPerDay, tasks, note) {
+        const timesheet = []
         const targetQuarterHours = minutesPerDay / 15 // # of targeted quarter-hours as per the given minutes-per-day target
 
-        const randomlyChosenTasks = chance.pickset(tasks, chance.natural({ min: Math.ceil(tasks.length * 0.5), max: tasks.length })) // Randomly choose a set of tasks
+        const randomlyChosenTasks = chance.pickset(tasks, chance.natural({ min: Math.ceil(tasks.length * 0.66), max: tasks.length })) // Randomly choose a set of tasks, but at least 2/3rds
         const randomQuarterHoursPerTask = this.generateRandomNumbersWhichSumTo(randomlyChosenTasks.length, targetQuarterHours)
 
         randomlyChosenTasks.forEach((task, index) => {

@@ -6,9 +6,9 @@ import store from '../store'
 import httpClient from '../helpers/http-client'
 import ClockifyService from '../services/clockify-service'
 
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { fas } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { fas } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome"
 
 // Enable Devtools
 Vue.config.devtools = true
@@ -36,7 +36,7 @@ Vue.use(Buefy, {
 // Init Clockify service
 const clockify = new ClockifyService(httpClient)
 
-// Inject httpClient into $http 
+// Inject 
 Vue.prototype.$http = httpClient
 Vue.prototype.$clockify = clockify
 

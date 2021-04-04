@@ -10,7 +10,7 @@
             </div>
         </div>
         <b-table class="mb-6"
-            :data="showProfileTasksOnly ? timesheetProjects : projects"
+            :data="showProfileTasksOnly ? profileProjects : projects"
             :default-sort="['name', 'asc']"
             ref="table"
             detailed
@@ -23,8 +23,8 @@
             pagination-position="top"
             pagination-simple
             backend-pagination
-            :per-page="numOfProjects"
-            :total="totalPaginationData"
+            :per-page="projectsCount"
+            :total="totalPages"
             :current-page="currentPage"
             @page-change="newPage => onPageChange(newPage)">
 
@@ -40,7 +40,7 @@
                 centered
                 v-slot="project">
                 <b-tag type="is-light has-text-weight-semibold">
-                    {{ dayTotalsPerProject[index+1][project.row.id] | hoursCount }}
+                    {{ dayTotalsPerProject[index][project.row.id] | hoursCount }}
                 </b-tag>
             </b-table-column>
 
@@ -48,7 +48,7 @@
                 <tr v-for="task in props.row.tasks" :key="task.id">
                     <td></td>
                     <td>{{ task.name }}</td>
-                    <td v-for="index in 7" :key="index" class="has-text-centered">
+                    <td v-for="(_, index) in weekDates" :key="index" class="has-text-centered">
                         <div class="duration-picker mx-3 px-1">
                             <duration-picker v-model="timeEntries[index][task.id]">
                             </duration-picker>
@@ -64,15 +64,15 @@
                 <th class="is-hidden-mobile">
                     <div class="th-wrap">Total:</div>
                 </th>
-                <th v-for="index in 7" :key="index" class="is-hidden-mobile">
+                <th v-for="(_, index) in weekDates" :key="index" class="is-hidden-mobile">
                     <div class="th-wrap is-centered">
                         <span :class="
                                 [
                                     'tag',
-                                    {'is-danger': index <= 5 && dayTotals[index].asHours() < 8 },
-                                    {'is-success': index <= 5 && dayTotals[index].asHours() >= 8 },
-                                    {'is-light': index > 5 && dayTotals[index].asMinutes() === 0 },
-                                    {'is-warning': index > 5 && dayTotals[index].asMinutes() > 0 }
+                                    {'is-danger': index <= 4 && dayTotals[index].asHours() < 8 },
+                                    {'is-success': index <= 4 && dayTotals[index].asHours() >= 8 },
+                                    {'is-light': index > 4 && dayTotals[index].asMinutes() === 0 },
+                                    {'is-warning': index > 4 && dayTotals[index].asMinutes() > 0 }
                                 ]">
                             {{ dayTotals[index] | hoursCount }}
                         </span>
@@ -103,35 +103,33 @@ nav.pagination small {
 </style>
 
 <script>
-import dayjs from 'dayjs'
-import duration from 'dayjs/plugin/duration'
-import utc from 'dayjs/plugin/utc'
 import { mapFields } from 'vuex-map-fields'
 import ProfileService from '../services/profile-service'
 import TimesheetGeneratorService from '../services/timesheet-generator-service'
 import DurationPicker from './util/DurationPicker.vue'
-
-dayjs.extend(duration)
-dayjs.extend(utc)
+import { currentWeekStart, weeksInYear, daysInWeek, zeroDuration } from '@/helpers/time-helpers'
+import { getAllProjectsTasks, isProfileTask, getDayEntries, timeToStartEntries } from '@/helpers/timesheet-helpers'
 
 const profileService = new ProfileService()
 const timesheetGeneratorService = new TimesheetGeneratorService()
-
-const WEEKS_SUPPORTED = 52
 
 export default {
     name: 'TimesheetTable',
     components: { DurationPicker },
     data () {
         return {
-            weekDates: [],
-            timeEntries: {},
-            distributionProfile: {},
-            showProfileTasksOnly: true,
-            previousPage: WEEKS_SUPPORTED,
-            currentPage: WEEKS_SUPPORTED,
-            isLoading: false,
+            currentWeekStart: currentWeekStart(), // FIXED
+            timeEntries: [], 
+            distributionProfile: {}, // FIXED
+            showProfileTasksOnly: true, // FIXED
+            previousPage: weeksInYear(), // FIXED
+            currentPage: weeksInYear(), // FIXED
+            isLoading: false, // FIXED
         }
+    },
+    created() {
+        this.distributionProfile = profileService.getDistributionProfile(this.profile)
+        this.initTimeEntries(this.projects)
     },
     computed: {
         ...mapFields([
@@ -140,238 +138,188 @@ export default {
             'profile',
             'softSubmit'
         ]),
-        numOfProjects: function () {
+        weekDates: function() { // FIXED
+            const weekDates = []
+            for (let i = 0; i < daysInWeek(); i++) {
+                weekDates[i] = this.currentWeekStart.add(i, 'day')
+            }
+            return weekDates
+        },
+        projectsCount: function () { // FIXED
             return this.projects.length
         },
-        totalPaginationData: function () {
-            return this.numOfProjects * WEEKS_SUPPORTED * 2 // 1 year back - 1 year ahead
+        totalPages: function () {
+            return this.projectsCount * weeksInYear() * 2 // An year ahead and an year back
         },
-        timesheetProjects: function () {
+        profileProjects: function () { // FIXED
             return this.projects.map(project => ({
                 ...project,
-                tasks: project.tasks.filter(task => this.isProfileTask(task))
+                tasks: project.tasks.filter(task => isProfileTask(task, this.distributionProfile))
             }))
         },
-        projectIds: function () {
+        projectIds: function () { // FIXED
             return this.projects.map(project => project.id)
         },
-        dayTotals: function () {
-            const totals = []
+        dayTotals: function () { // FIXED
+            const dayTotals = []
 
-            for (let i = 1; i <= 7; i++) {
-                const dayTaskEntries = this.timeEntries[i]
-                const total = Object.values(dayTaskEntries).reduce((prev, current) => prev.add(current), dayjs.duration(0))
-                totals[i] = total
+            for (const dayIndex in this.weekDates) {
+                dayTotals[dayIndex] = Object.values(this.timeEntries[dayIndex]).reduce((previous, current) => previous.add(current), zeroDuration())
             }
 
-            return totals
+            return dayTotals
         },
-        dayTotalsPerProject: function () {
-            const totalsPerProject = []
+        dayTotalsPerProject: function () { // FIXED ???
+            const dayTotalsPerProject = []
 
-            for (let i = 1; i <= 7; i++) {
-                const dayTotalsPerProject = this.projects.map(project => ({
-                    [project.id]: project.tasks
-                                    .filter(task => !!this.timeEntries[i][task.id])
-                                    .map(task => this.timeEntries[i][task.id])
-                                    .reduce((accumulator, value) => accumulator.add(value), dayjs.duration(0))
-                }))
-                .reduce((accumulator, value) => {
-                    Object.entries(value).forEach(([key, value]) => {
-                        accumulator[key] = value
-                    })
-                    return accumulator
-                }, {})
+            for (const dayIndex in this.weekDates) {
+                const totalsForTheDayPerProject = this.projects
+                    .map(project => ({
+                        [project.id]: project.tasks
+                                        .filter(task => !!this.timeEntries[dayIndex][task.id])
+                                        .map(task => this.timeEntries[dayIndex][task.id])
+                                        .reduce((previous, current) => previous.add(current), zeroDuration())
+                    }))
+                    .reduce((accumulator, value) => {
+                        Object.entries(value).forEach(([key, value]) => {
+                            accumulator[key] = value
+                        })
+                        return accumulator
+                    }, [])
 
-                totalsPerProject[i] = dayTotalsPerProject
+                dayTotalsPerProject[dayIndex] = totalsForTheDayPerProject
             }
 
-            return totalsPerProject
+            return dayTotalsPerProject
         },
-        isTimesheetEmpty: function () {
-            return this.dayTotals.reduce((a, b) => a.add(b), dayjs.duration(0)).asMinutes() == 0
+        isTimesheetEmpty: function () { // FIXED
+            return this.dayTotals.reduce((previous, current) => previous.add(current), zeroDuration()).asMinutes() == 0
         }
     },
-    created() {
-        this.initWeekDates()
-        this.distributionProfile = profileService.getDistributionProfile(this.profile)
-        this.initTimeEntries(this.projects)
-    },
     watch: {
-        projects: function (projects) {
-            this.initTimeEntries(projects)
+        /* eslint-disable no-unused-vars */
+        projects: function (_) { // FIXED
+            this.initTimeEntries()
         }
     },
     methods: {
-        toggle(row) {
+        toggle(row) { // FIXED
             this.$refs.table.toggleDetails(row)
         },
-        initWeekDates() {
-            const rawWeekDates = Array.from({length: 7}, (_, i) => i + 1)
-                .map(i => dayjs().startOf('week').day(i))
+        initTimeEntries() { // FIXED
+            const allProjectsTasks = getAllProjectsTasks(this.projects)
 
-            const _this = this
-            rawWeekDates.forEach((weekDate, index) => {
-                _this.$set(_this.weekDates, index, weekDate)
-            })
-        },
-        isProfileTask(task) {
-            for (const distProfileTask of this.distributionProfile.tasks) {
-                if (task.name.includes(distProfileTask)) {
-                    return true
-                }
-            }
-            return false
-        },
-        initTimeEntries(projects) {
-            const allProjectsTasks = []
-            projects.forEach(project => {
-                project.tasks.forEach(task => allProjectsTasks.push(task.id))
-            })
-
-            for (let i = 1; i <= 7; i++) {
-                if (!this.timeEntries[i]) {
-                    this.$set(this.timeEntries, i, {})
+            for (const dayIndex in this.weekDates) {
+                // Init time entries for the day
+                if (!this.timeEntries[dayIndex]) {
+                    this.$set(this.timeEntries, dayIndex, [])
                 }
 
-                // Add new tasks
+                // Add *new* tasks to the day time entries
                 allProjectsTasks.forEach(taskId => {
-                    if (!this.timeEntries[i][taskId]) {
-                        this.$set(this.timeEntries[i], taskId, dayjs.duration(0))
+                    if (!this.timeEntries[dayIndex][taskId]) {
+                        this.$set(this.timeEntries[dayIndex], taskId, zeroDuration())
                     }
                 })
 
                 // Remove dangling tasks
-                for (const [key] of Object.entries(this.timeEntries[i])) {
-                    if (!allProjectsTasks.includes(key)) {
-                        this.$delete(this.timeEntries[i], key)
+                for (const taskId in this.timeEntries[dayIndex]) {
+                    if (!allProjectsTasks.includes(taskId)) {
+                        this.$delete(this.timeEntries[dayIndex], taskId)
                     }
                 }
             }
         },
-        populateTimeEntries(weekTimesheet) {
-            Object.entries(weekTimesheet).forEach(([day, tasks]) => {
+        populateTimeEntries(weekTimesheet) { // FIXED
+            Object.entries(weekTimesheet).forEach(([dayIndex, tasks]) => {
                 Object.entries(tasks).forEach(([taskId, duration]) => {
-                    if (!this.timeEntries[day][taskId]) {
-                        console.error(`Cannot find task ${taskId} for day ${day}`)
+                    if (!this.timeEntries[dayIndex][taskId]) {
+                        console.error(`Cannot find task ${taskId} for day ${dayIndex}`)
                     }
                     else {
-                        this.timeEntries[day][taskId] = duration
+                        this.timeEntries[dayIndex][taskId] = duration
                     }
                 })
             })
         },
-        getTaskProjectId(taskId) {
+        getTaskProjectId(taskId) { // FIXED
             const [ projectId ] = this.projects
                 .filter(project => project.tasks.filter(task => task.id === taskId).length)
                 .map(project => project.id)
             return projectId
         },
-        randomize() {
+        randomize() { // FIXED
             this.isLoading = true
             this.reset()
-            const weekTimesheet = timesheetGeneratorService.generateTimesheet(this.distributionProfile, this.timesheetProjects)
-            console.log(JSON.stringify(weekTimesheet))
-            this.populateTimeEntries(weekTimesheet)
+            const generatedTimesheet = timesheetGeneratorService.generateTimesheet(this.distributionProfile, this.profileProjects)
+            console.error(generatedTimesheet)
+            this.populateTimeEntries(generatedTimesheet)
             this.$buefy.toast.open('Successfully randomized that sh*t 🧐')
             this.isLoading = false
         },
-        reset() {
-            Object.entries(this.timeEntries).forEach(([day, tasks]) => {
-                Object.entries(tasks).forEach(([taskId]) => {
-                    this.timeEntries[day][taskId] = dayjs.duration(0, 'minutes')
-                })
+        reset() { // FIXED
+            Object.entries(this.timeEntries).forEach(([dayIndex, tasks]) => {
+                for (const taskId in tasks) {
+                    this.timeEntries[dayIndex][taskId] = zeroDuration()
+                }
             })
         },
-        async submit() {
+        async submit() { // FIXED
             this.isLoading = true
             const clockifyEntries = []
             
-            this.weekDates.forEach(day => {
-                const dayEntries = this.createClockifyTimeEntries(day)
+            this.weekDates.forEach((_, dayIndex) => {
+                const dayEntries = this.createClockifyTimeEntries(dayIndex)
                 clockifyEntries.push(...dayEntries)
             })
 
             await this.submitClockifyEntries(clockifyEntries)
             this.isLoading = false
         },
-        createClockifyTimeEntries(day) {
+        createClockifyTimeEntries(dayIndex) {
             const clockifyDayEntries = []
-            const dayIndex = day.get('day') != 0 ? day.get('day') : 7 // Hack around the fact that dayjs considers Sunday to be the 0th week day
-            const dayEntries = Object.entries(this.timeEntries[dayIndex]) // We get all non-zero time entries for the day
-                                    // eslint-disable-next-line no-unused-vars
-                                    .filter(([_, duration]) => duration.asMinutes() > 0)
-                                    .reduce((obj, [taskId, duration]) => {
-                                        obj[taskId] = duration
-                                        return obj
-                                    }, {})
 
-            const workDayStart = 10
-            let timeToStartNextEntry = this.weekDates[0].startOf('week').day(dayIndex).hour(workDayStart)
-            // NASTY HACK ALERT!!1 ☝️
+            const dayEntries = getDayEntries(dayIndex, this.timeEntries)
+
+            let timeToStartNextEntry = timeToStartEntries(this.currentWeekStart, dayIndex, 8) // Start at 08:00 UTC // TODO: Read Clockify settings
 
             Object.entries(dayEntries).forEach(([taskId, duration]) => {
                 const start = timeToStartNextEntry
                 const end = start.add(duration.asMinutes(), 'minute')
                 const projectId = this.getTaskProjectId(taskId)
-                const clockifyEntry = {
-                    'start': start.toISOString(),
-                    'end': end.toISOString(),
-                    'projectId': projectId,
-                    'taskId': taskId
-                }
+                const clockifyEntry = this.$clockify.timeEntry(start, end, projectId, taskId)
                 clockifyDayEntries.push(clockifyEntry)
                 timeToStartNextEntry = end
             })
 
             return clockifyDayEntries
         },
-        async submitClockifyEntries(clockifyEntries) {
-            for (const clockifyEntry of clockifyEntries) {
-                const response = await this.$http.post(`/workspaces/${this.userInfo.activeWorkspace}/time-entries`, clockifyEntry)
-                console.log(`${response.status} for ${JSON.stringify(clockifyEntry)}`)
-            }
-            
-            const localWeekStart = this.weekDates[0]
-            const beginningOfWeek = dayjs().utc().date(localWeekStart.date()).month(localWeekStart.month()).year(localWeekStart.year()).toISOString()
-            const approvalRequest = {
-                weekTime: beginningOfWeek
-            }
+        async submitClockifyEntries(clockifyEntries) { // FIXED
             try {
+                for (const timeEntry of clockifyEntries) {
+                    await this.$clockify.createTimeEntry(this.userInfo.activeWorkspace, timeEntry)
+                }
+                
                 if (!this.softSubmit) {
-                    const approvalRequestResp = await this.$http.post(`https://global.api.clockify.me/workspaces/${this.userInfo.activeWorkspace}/users/${this.userInfo.id}/approval-requests/`, approvalRequest)
-                    console.log(`Approval request status code: ${approvalRequestResp.status} body=${JSON.stringify(approvalRequest)}`)
+                    await this.$clockify.submitApprovalRequest(this.userInfo.activeWorkspace, this.userInfo.id, this.currentWeekStart)
+                    this.openSnackbar('Your timesheet has been successfully submitted for approval', 'is-success')
+                } else {
+                    this.openSnackbar('Your time entries have been successfully created', 'is-success')
                 }
-                this.$buefy.snackbar.open({
-                        message: 'Your timesheet has been submitted successfully',
-                        type: 'is-success',
-                        position: 'is-top',
-                        actionText: 'OK',
-                        indefinite: true
-                    })
             } catch (err) {
-                this.$buefy.snackbar.open({
-                        message: 'Error occurred during timesheet submission, please check status in the Clockify App',
-                        type: 'is-danger',
-                        position: 'is-top',
-                        actionText: 'OK',
-                        indefinite: true
-                    })
-                if (err.response) {
-                    console.log(err.response.data);
-                    console.log(err.response.status);
-                    console.log(err.response.headers);
-                }
+                this.openSnackbar('Error occurred during timesheet submission, please check status in the Clockify App', 'is-danger')
+                console.error(err)
             } finally {
                 this.isLoading = false
             }
         },
-        onPageChange(currentPage) {
+        openSnackbar(message, type) { // FIXED
+            this.$buefy.snackbar.open({ message, type, position: 'is-top', actionText: 'OK', indefinite: true })
+        },
+        onPageChange(currentPage) { // FIXED
             this.reset()
             const weekAheadOrBehind = currentPage - this.previousPage
-            for (let i = 0; i < 7; i++) {
-                this.$set(this.weekDates, i, this.weekDates[i].add(weekAheadOrBehind, 'week'))
-            }
+            this.currentWeekStart = this.currentWeekStart.add(weekAheadOrBehind, 'week')
             this.previousPage = currentPage
         }
     },

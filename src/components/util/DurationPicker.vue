@@ -1,28 +1,24 @@
 <template>
-    <b-field label="">
-        <b-timepicker
-            placeholder=""
-            hour-format="24"
-            icon="clock"
-            size="is-small"
-            :incrementMinutes="15"
-            :incrementHours="1"
-            v-model="buefyTimepickerBridge"
-            :time-formatter="formatTime"
-            >
-        </b-timepicker>
-    </b-field>
+    <span class="duration-picker">
+        <b-field label="">
+            <b-timepicker
+                placeholder=""
+                hour-format="24"
+                icon="clock"
+                size="is-small"
+                :incrementMinutes="15"
+                :incrementHours="1"
+                v-model="buefyTimepickerBridge"
+                :time-formatter="formatTime"
+                >
+            </b-timepicker>
+        </b-field>
+    </span>
+
 </template>
 
 <script>
-import dayjs from 'dayjs'
-import duration from 'dayjs/plugin/duration'
-import utc from 'dayjs/plugin/utc'
-import objectSupport from 'dayjs/plugin/objectSupport'
-
-dayjs.extend(duration)
-dayjs.extend(utc)
-dayjs.extend(objectSupport)
+import dayjs from '@/helpers/dayjs'
 
 export default {
     name: 'DurationPicker',
