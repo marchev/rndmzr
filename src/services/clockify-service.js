@@ -28,6 +28,17 @@ export default class ClockifyService {
         await this.httpClient.post(`https://global.api.clockify.me/workspaces/${workspace}/users/${userId}/approval-requests/`, approvalRequest)
     }
 
+    async getTimeEntries(workspace, userId, weekStart) {
+        const start = weekStart.format()
+        const end = weekStart.add(1, 'week').subtract(1, 'millisecond').format()
+        const { data } = await this.httpClient.get(`/workspaces/${workspace}/user/${userId}/time-entries?start=${start}&end=${end}&page-size=500`)
+        return data
+    }
+
+    async deleteTimeEntry(workspace, timeEntryId) {
+        await this.httpClient.delete(`/workspaces/${workspace}/time-entries/${timeEntryId}`)
+    }
+
     getTaskType(taskName) {
         return taskName.toLowerCase().includes('capex') ? 'capex' : 'opex'
     }

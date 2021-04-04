@@ -8,7 +8,7 @@ const httpClient = rateLimit(axios.create({
         'Accept': 'application/json',
         'Content-Type': 'application/json'
     }
-}), { maxRPS: 10 });
+}), { maxRPS: 8 });
 
 httpClient.interceptors.request.use(
     async config => {

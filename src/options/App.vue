@@ -16,8 +16,17 @@
         </b-field>
         <b-field label="Soft Submit">
           <b-tooltip multilined label="Only creates time entries without submitting them for approval"
-            position="is-right">
-            <b-switch v-model="softSubmit" type="is-default">
+            position="is-right"
+            size="is-large">
+            <b-switch type="is-default" v-model="softSubmitValue" >
+            </b-switch>
+          </b-tooltip>
+        </b-field>
+        <b-field label="Override Mode">
+          <b-tooltip multilined label="Deletes all time entries for the week at Clockify before submit"
+            position="is-right"
+            size="is-large">
+            <b-switch type="is-default" v-model="overrideModeValue" >
             </b-switch>
           </b-tooltip>
         </b-field>
@@ -37,13 +46,16 @@ export default {
     ...mapFields([
       'profile',
       'apiKey',
-      'softSubmit'
+      'softSubmit',
+      'overrideMode'
     ])
   },
   data () {
     return {
       profileFieldValue: '',
       apiKeyValue: '',
+      softSubmitValue: false,
+      overrideModeValue: false,
       'profiles': [
         { id: 'engineering-manager', label: 'Engineering Manager' },
         { id: 'agile-delivery-lead', label: 'Agile Delivery Lead' },
@@ -55,11 +67,15 @@ export default {
   async created () {
     this.profileFieldValue = this.profile
     this.apiKeyValue = this.apiKey
+    this.softSubmitValue = this.softSubmit
+    this.overrideModeValue = this.overrideMode
   },
   methods: {
     async saveSettings() {
       this.profile = this.profileFieldValue
       this.apiKey = this.apiKeyValue
+      this.softSubmit = this.softSubmitValue
+      this.overrideMode = this.overrideModeValue
       this.$buefy.toast.open('Settings saved')
     }
   }

@@ -118,16 +118,16 @@ export default {
     components: { DurationPicker },
     data () {
         return {
-            currentWeekStart: currentWeekStart(), // FIXED
-            timeEntries: [], 
-            distributionProfile: {}, // FIXED
-            showProfileTasksOnly: true, // FIXED
-            previousPage: weeksInYear(), // FIXED
-            currentPage: weeksInYear(), // FIXED
-            isLoading: false, // FIXED
+            currentWeekStart: currentWeekStart(),
+            timeEntries: [],
+            distributionProfile: {},
+            showProfileTasksOnly: true,
+            previousPage: weeksInYear(),
+            currentPage: weeksInYear(),
+            isLoading: false,
         }
     },
-    created() {
+    async created() {
         this.distributionProfile = profileService.getDistributionProfile(this.profile)
         this.initTimeEntries(this.projects)
     },
@@ -136,31 +136,32 @@ export default {
             'userInfo',
             'projects',
             'profile',
-            'softSubmit'
+            'softSubmit',
+            'overrideMode'
         ]),
-        weekDates: function() { // FIXED
+        weekDates: function() {
             const weekDates = []
             for (let i = 0; i < daysInWeek(); i++) {
                 weekDates[i] = this.currentWeekStart.add(i, 'day')
             }
             return weekDates
         },
-        projectsCount: function () { // FIXED
+        projectsCount: function () {
             return this.projects.length
         },
         totalPages: function () {
             return this.projectsCount * weeksInYear() * 2 // An year ahead and an year back
         },
-        profileProjects: function () { // FIXED
+        profileProjects: function () {
             return this.projects.map(project => ({
                 ...project,
                 tasks: project.tasks.filter(task => isProfileTask(task, this.distributionProfile))
             }))
         },
-        projectIds: function () { // FIXED
+        projectIds: function () {
             return this.projects.map(project => project.id)
         },
-        dayTotals: function () { // FIXED
+        dayTotals: function () {
             const dayTotals = []
 
             for (const dayIndex in this.weekDates) {
@@ -169,7 +170,7 @@ export default {
 
             return dayTotals
         },
-        dayTotalsPerProject: function () { // FIXED ???
+        dayTotalsPerProject: function () { // TODO: Optimize implementation
             const dayTotalsPerProject = []
 
             for (const dayIndex in this.weekDates) {
@@ -192,21 +193,21 @@ export default {
 
             return dayTotalsPerProject
         },
-        isTimesheetEmpty: function () { // FIXED
+        isTimesheetEmpty: function () {
             return this.dayTotals.reduce((previous, current) => previous.add(current), zeroDuration()).asMinutes() == 0
         }
     },
     watch: {
         /* eslint-disable no-unused-vars */
-        projects: function (_) { // FIXED
+        projects: function (_) {
             this.initTimeEntries()
         }
     },
     methods: {
-        toggle(row) { // FIXED
+        toggle(row) {
             this.$refs.table.toggleDetails(row)
         },
-        initTimeEntries() { // FIXED
+        initTimeEntries() {
             const allProjectsTasks = getAllProjectsTasks(this.projects)
 
             for (const dayIndex in this.weekDates) {
@@ -230,7 +231,7 @@ export default {
                 }
             }
         },
-        populateTimeEntries(weekTimesheet) { // FIXED
+        populateTimeEntries(weekTimesheet) {
             Object.entries(weekTimesheet).forEach(([dayIndex, tasks]) => {
                 Object.entries(tasks).forEach(([taskId, duration]) => {
                     if (!this.timeEntries[dayIndex][taskId]) {
@@ -242,29 +243,26 @@ export default {
                 })
             })
         },
-        getTaskProjectId(taskId) { // FIXED
+        getTaskProjectId(taskId) {
             const [ projectId ] = this.projects
                 .filter(project => project.tasks.filter(task => task.id === taskId).length)
                 .map(project => project.id)
             return projectId
         },
-        randomize() { // FIXED
-            this.isLoading = true
+        randomize() {
             this.reset()
             const generatedTimesheet = timesheetGeneratorService.generateTimesheet(this.distributionProfile, this.profileProjects)
-            console.error(generatedTimesheet)
             this.populateTimeEntries(generatedTimesheet)
             this.$buefy.toast.open('Successfully randomized that sh*t 🧐')
-            this.isLoading = false
         },
-        reset() { // FIXED
+        reset() {
             Object.entries(this.timeEntries).forEach(([dayIndex, tasks]) => {
                 for (const taskId in tasks) {
                     this.timeEntries[dayIndex][taskId] = zeroDuration()
                 }
             })
         },
-        async submit() { // FIXED
+        async submit() {
             this.isLoading = true
             const clockifyEntries = []
             
@@ -273,8 +271,15 @@ export default {
                 clockifyEntries.push(...dayEntries)
             })
 
+            if (this.overrideMode) {
+                await this.purgeClockifyEntries()
+            }
             await this.submitClockifyEntries(clockifyEntries)
             this.isLoading = false
+        },
+        async purgeClockifyEntries() {
+            const entriesToBeDeleted = await this.$clockify.getTimeEntries(this.userInfo.activeWorkspace, this.userInfo.id, this.currentWeekStart)
+            await Promise.all(entriesToBeDeleted.map(async entry => await this.$clockify.deleteTimeEntry(this.userInfo.activeWorkspace, entry.id)))
         },
         createClockifyTimeEntries(dayIndex) {
             const clockifyDayEntries = []
@@ -294,12 +299,10 @@ export default {
 
             return clockifyDayEntries
         },
-        async submitClockifyEntries(clockifyEntries) { // FIXED
+        async submitClockifyEntries(clockifyEntries) {
             try {
-                for (const timeEntry of clockifyEntries) {
-                    await this.$clockify.createTimeEntry(this.userInfo.activeWorkspace, timeEntry)
-                }
-                
+                await Promise.all(clockifyEntries.map(async timeEntry => await this.$clockify.createTimeEntry(this.userInfo.activeWorkspace, timeEntry)))
+
                 if (!this.softSubmit) {
                     await this.$clockify.submitApprovalRequest(this.userInfo.activeWorkspace, this.userInfo.id, this.currentWeekStart)
                     this.openSnackbar('Your timesheet has been successfully submitted for approval', 'is-success')
@@ -309,14 +312,12 @@ export default {
             } catch (err) {
                 this.openSnackbar('Error occurred during timesheet submission, please check status in the Clockify App', 'is-danger')
                 console.error(err)
-            } finally {
-                this.isLoading = false
             }
         },
-        openSnackbar(message, type) { // FIXED
+        openSnackbar(message, type) {
             this.$buefy.snackbar.open({ message, type, position: 'is-top', actionText: 'OK', indefinite: true })
         },
-        onPageChange(currentPage) { // FIXED
+        onPageChange(currentPage) {
             this.reset()
             const weekAheadOrBehind = currentPage - this.previousPage
             this.currentWeekStart = this.currentWeekStart.add(weekAheadOrBehind, 'week')

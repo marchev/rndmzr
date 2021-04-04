@@ -10,6 +10,7 @@ export default new Vuex.Store({
     profile: '',
     apiKey: '',
     softSubmit: false,
+    overrideMode: false,
     projects: [],
     userInfo: {}
   },
@@ -29,6 +30,6 @@ export default new Vuex.Store({
     },
   },
   plugins: [createPersistedState({
-    paths: ['profile', 'apiKey', 'softSubmit', 'projects']
+    paths: ['profile', 'apiKey', 'softSubmit', 'overrideMode', 'projects']
   })]
 })
