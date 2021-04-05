@@ -2,11 +2,11 @@
   <section>
         <div id="generator" class="generator mt-4 columns">
             <div class="column">
-            <b-button @click="randomize()" type="is-dark" class="mr-2">Randomize!</b-button>
-            <b-button @click="reset()" type="is-light">Reset</b-button>
+            <b-button @click="randomize()" :disabled="locked" type="is-dark" class="mr-2">Randomize!</b-button>
+            <b-button @click="reset()" :disabled="locked" type="is-light">Reset</b-button>
             </div>
             <div class="column has-text-right">
-            <b-button :disabled="isTimesheetEmpty" @click="submit()" type="is-danger">Submit</b-button>
+            <b-button @click="submit()" :disabled="isTimesheetEmpty || locked" type="is-danger">Submit</b-button>
             </div>
         </div>
         <b-table class="mb-6"
@@ -81,6 +81,26 @@
                 <div id="profile-tasks-switch" class="has-text-weight-semibold">
                     <b-switch v-model="showProfileTasksOnly" type="is-success">Show profile tasks only</b-switch>
                 </div>
+                <span :class="
+                        [
+                            'tag',
+                            'mt-1',
+                            'ml-2',
+                            'has-text-weight-semibold',
+                            { 'is-light': status === 'UNSUBMITTED' },
+                            { 'is-warning': status === 'PENDING' },
+                            { 'is-success': status === 'APPROVED' }
+                        ]">
+                    {{ status }}
+                </span>
+                <b-icon
+                    v-show="timesheetLoading"
+                    class="mt-1 ml-2"
+                    pack="fas"
+                    icon="sync-alt"
+                    size="is-small"
+                    custom-class="fa-spin">
+                </b-icon>
             </template>
         </b-table>
         <b-loading :is-full-page="true" v-model="isLoading" :can-cancel="false">
@@ -95,6 +115,10 @@
 </template>
 
 <style>
+.tag {
+    cursor: default;
+}
+
 nav.pagination small {
     display:none;
 }
@@ -118,7 +142,7 @@ import ProfileService from '../services/profile-service'
 import TimesheetGeneratorService from '../services/timesheet-generator-service'
 import DurationPicker from './util/DurationPicker.vue'
 import { currentWeekStart, weeksInYear, daysInWeek, zeroDuration } from '@/helpers/time-helpers'
-import { getAllProjectsTasks, isProfileTask, getDayEntries, timeToStartEntries } from '@/helpers/timesheet-helpers'
+import { getAllProjectsTasks, isProfileTask, getDayEntries, timeToStartEntries, convertToTimesheet } from '@/helpers/timesheet-helpers'
 
 const profileService = new ProfileService()
 const timesheetGeneratorService = new TimesheetGeneratorService()
@@ -135,6 +159,7 @@ export default {
             previousPage: weeksInYear(),
             currentPage: weeksInYear(),
             isLoading: false,
+            timesheetLoading: false
         }
     },
     async created() {
@@ -147,7 +172,8 @@ export default {
             'projects',
             'profile',
             'softSubmit',
-            'overrideMode'
+            'overrideMode',
+            'status'
         ]),
         weekDates: function() {
             const weekDates = []
@@ -205,12 +231,19 @@ export default {
         },
         isTimesheetEmpty: function () {
             return this.dayTotals.reduce((previous, current) => previous.add(current), zeroDuration()).asMinutes() == 0
+        },
+        locked: function() {
+            return this.status === 'PENDING' || this.status === 'APPROVED'
         }
     },
     watch: {
         /* eslint-disable no-unused-vars */
         projects: function (_) {
             this.initTimeEntries()
+        },
+        currentWeekStart: {
+            immediate: true,
+            handler: 'fetchAndPopulateEntriesForTheWeek'
         }
     },
     methods: {
@@ -263,7 +296,10 @@ export default {
             this.reset()
             const generatedTimesheet = timesheetGeneratorService.generateTimesheet(this.distributionProfile, this.profileProjects)
             this.populateTimeEntries(generatedTimesheet)
-            this.$buefy.toast.open('Successfully randomized that sh*t 🧐')
+            this.$buefy.toast.open({
+                message: 'Successfully randomized that sh*t 🧐',
+                queue: false
+            })
         },
         reset() {
             Object.entries(this.timeEntries).forEach(([dayIndex, tasks]) => {
@@ -273,23 +309,36 @@ export default {
             })
         },
         async submit() {
-            this.isLoading = true
-            const clockifyEntries = []
-            
-            this.weekDates.forEach((_, dayIndex) => {
-                const dayEntries = this.createClockifyTimeEntries(dayIndex)
-                clockifyEntries.push(...dayEntries)
-            })
+            try {
+                this.isLoading = true
+                const clockifyEntries = []
+                
+                this.weekDates.forEach((_, dayIndex) => {
+                    const dayEntries = this.createClockifyTimeEntries(dayIndex)
+                    clockifyEntries.push(...dayEntries)
+                })
 
-            if (this.overrideMode) {
-                await this.purgeClockifyEntries()
+                if (this.overrideMode) {
+                    await this.purgeClockifyEntries()
+                }
+                await this.submitClockifyEntries(clockifyEntries)
+                await this.fetchAndPopulateEntriesForTheWeek(this.currentWeekStart)
+
+                if (!this.softSubmit) {
+                    this.openSnackbar('Your timesheet has been successfully submitted for approval', 'is-success')
+                } else {
+                    this.openSnackbar('Your time entries have been successfully created', 'is-success')
+                }
+            } catch (err) {
+                this.openSnackbar('Error occurred during timesheet submission, please check status in the Clockify App', 'is-danger')
+                console.error(err)
+            } finally {
+                this.isLoading = false
             }
-            await this.submitClockifyEntries(clockifyEntries)
-            this.isLoading = false
         },
         async purgeClockifyEntries() {
-            const entriesToBeDeleted = await this.$clockify.getTimeEntries(this.userInfo.activeWorkspace, this.userInfo.id, this.currentWeekStart)
-            await Promise.all(entriesToBeDeleted.map(async entry => await this.$clockify.deleteTimeEntry(this.userInfo.activeWorkspace, entry.id)))
+            const { entries } = await this.$clockify.getWeekEntries(this.userInfo.activeWorkspace, this.userInfo.id, this.currentWeekStart)
+            await Promise.all(entries.map(async entry => await this.$clockify.deleteTimeEntry(this.userInfo.activeWorkspace, entry.id)))
         },
         createClockifyTimeEntries(dayIndex) {
             const clockifyDayEntries = []
@@ -310,25 +359,31 @@ export default {
             return clockifyDayEntries
         },
         async submitClockifyEntries(clockifyEntries) {
-            try {
-                await Promise.all(clockifyEntries.map(async timeEntry => await this.$clockify.createTimeEntry(this.userInfo.activeWorkspace, timeEntry)))
+            await Promise.all(clockifyEntries.map(async timeEntry => await this.$clockify.createTimeEntry(this.userInfo.activeWorkspace, timeEntry)))
 
-                if (!this.softSubmit) {
-                    await this.$clockify.submitApprovalRequest(this.userInfo.activeWorkspace, this.userInfo.id, this.currentWeekStart)
-                    this.openSnackbar('Your timesheet has been successfully submitted for approval', 'is-success')
-                } else {
-                    this.openSnackbar('Your time entries have been successfully created', 'is-success')
+            if (!this.softSubmit) {
+                await this.$clockify.submitApprovalRequest(this.userInfo.activeWorkspace, this.userInfo.id, this.currentWeekStart)
+            }
+        },
+        async fetchAndPopulateEntriesForTheWeek(weekStart) {
+            try {
+                this.timesheetLoading = true
+                if (Object.keys(this.userInfo).length === 0) {
+                    await new Promise(_ => setTimeout(this.fetchTimeEntries.bind(null, weekStart), 100))
                 }
-            } catch (err) {
-                this.openSnackbar('Error occurred during timesheet submission, please check status in the Clockify App', 'is-danger')
-                console.error(err)
+                const { status, entries } = await this.$clockify.getWeekEntries(this.userInfo.activeWorkspace, this.userInfo.id, weekStart)
+                this.status = status
+                const timesheet = convertToTimesheet(entries, this.currentWeekStart)
+                this.reset()
+                this.populateTimeEntries(timesheet)
+            } finally {
+                this.timesheetLoading = false
             }
         },
         openSnackbar(message, type) {
             this.$buefy.snackbar.open({ message, type, position: 'is-top', actionText: 'OK', indefinite: true })
         },
         onPageChange(currentPage) {
-            this.reset()
             const weekAheadOrBehind = currentPage - this.previousPage
             this.currentWeekStart = this.currentWeekStart.add(weekAheadOrBehind, 'week')
             this.previousPage = currentPage

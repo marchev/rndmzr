@@ -14,17 +14,19 @@
                     :incrementHours="1"
                     v-model="buefyTimepickerBridge"
                     :time-formatter="formatTime"
+                    :disabled="locked"
                     >
                 </b-timepicker>
             </b-field>
         </div>
-        <div class="column is-one-fifth hidden-clear-button">
+        <div v-show="!locked" class="column is-one-fifth hidden-clear-button">
             <button @click="reset" class="clear-timepicker delete is-small mt-2"></button>
         </div>
     </div>
 </template>
 
 <script>
+import { mapFields } from 'vuex-map-fields'
 import dayjs from '@/helpers/dayjs'
 
 export default {
@@ -33,6 +35,9 @@ export default {
         'value': Object
     },
     computed: {
+        ...mapFields([
+            'status'
+        ]),
         buefyTimepickerBridge: {
             // Duration to JS Date
             get() {
@@ -48,6 +53,9 @@ export default {
                         minutes: v.getMinutes()
                 }))
             }
+        },
+        locked: function() {
+            return this.status === 'PENDING' || this.status === 'APPROVED'
         }
     },
     methods: {

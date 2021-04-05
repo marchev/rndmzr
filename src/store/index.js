@@ -12,7 +12,8 @@ export default new Vuex.Store({
     softSubmit: false,
     overrideMode: false,
     projects: [],
-    userInfo: {}
+    userInfo: {},
+    status: 'UNSUBMITTED'
   },
   getters: {
     getField

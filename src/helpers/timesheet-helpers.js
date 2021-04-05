@@ -1,3 +1,5 @@
+import dayjs from '@/helpers/dayjs'
+
 export function getAllProjectsTasks(projects) {
     const allProjectsTasks = []
     projects.forEach(project => {
@@ -24,3 +26,18 @@ export const getDayEntries = (dayIndex, timeEntries) => {
 
 export const timeToStartEntries = (weekStart, dayIndex, workDayStart) =>
     weekStart.add(dayIndex, 'day').hour(workDayStart)
+
+export const convertToTimesheet = (clockifyEntries, weekStart) => clockifyEntries.reduce((timesheet, entry) => {
+        const entryStart = dayjs(entry.timeInterval.start)
+        const dayIndex = entryStart.diff(weekStart, 'day')
+        const taskId = entry.task.id
+        const duration = dayjs.duration(entry.timeInterval.duration)
+
+        if (!timesheet[dayIndex]) {
+            timesheet[dayIndex] = []
+        }
+        timesheet[dayIndex][taskId] = duration;
+        return timesheet
+    },
+    []
+)

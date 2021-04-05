@@ -28,11 +28,31 @@ export default class ClockifyService {
         await this.httpClient.post(`https://global.api.clockify.me/workspaces/${workspace}/users/${userId}/approval-requests/`, approvalRequest)
     }
 
-    async getTimeEntries(workspace, userId, weekStart) {
+    async getWeekEntries(workspace, userId, weekStart) {
         const start = weekStart.format()
         const end = weekStart.add(1, 'week').subtract(1, 'millisecond').format()
-        const { data } = await this.httpClient.get(`/workspaces/${workspace}/user/${userId}/time-entries?start=${start}&end=${end}&page-size=500`)
-        return data
+
+        const entriesResponse = await this.httpClient.get(`https://global.api.clockify.me/workspaces/${workspace}/timeEntries/users/${userId}?start=${start}&end=${end}&hydrated=true&page-size=500`)
+        const weekStatusResponse = await this.httpClient.get(`https://global.api.clockify.me/workspaces/${workspace}/users/${userId}/approval-requests/week-status?start=${weekStart.format()}`)
+
+        const entries = entriesResponse.data
+        const status = this.getWeekStatus(entries, weekStatusResponse.data)
+
+        return { status, entries }
+    }
+
+    getWeekStatus(entries, weekStatus) {
+        if (!entries.length) {
+            return 'UNSUBMITTED'
+        } else {
+            if (entries[0].approvalRequestId) {
+                return 'APPROVED'
+            } else if (weekStatus.status === 'PENDING') {
+                return 'PENDING'
+            } else {
+                return 'UNSUBMITTED'
+            }
+        }
     }
 
     async deleteTimeEntry(workspace, timeEntryId) {
