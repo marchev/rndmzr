@@ -1,20 +1,27 @@
 <template>
-    <span class="duration-picker">
-        <b-field label="">
-            <b-timepicker
-                placeholder=""
-                hour-format="24"
-                icon="clock"
-                size="is-small"
-                :incrementMinutes="15"
-                :incrementHours="1"
-                v-model="buefyTimepickerBridge"
-                :time-formatter="formatTime"
-                >
-            </b-timepicker>
-        </b-field>
-    </span>
-
+    <div class="columns is-gapless timepicker-container">
+        <div class="column is-one-fifth">
+            &nbsp;
+        </div>
+        <div class="column is-three-fifths">
+            <b-field label="">
+                <b-timepicker
+                    placeholder=""
+                    hour-format="24"
+                    icon="clock"
+                    size="is-small"
+                    :incrementMinutes="15"
+                    :incrementHours="1"
+                    v-model="buefyTimepickerBridge"
+                    :time-formatter="formatTime"
+                    >
+                </b-timepicker>
+            </b-field>
+        </div>
+        <div class="column is-one-fifth hidden-clear-button">
+            <button @click="reset" class="clear-timepicker delete is-small mt-2"></button>
+        </div>
+    </div>
 </template>
 
 <script>
@@ -46,6 +53,9 @@ export default {
     methods: {
         formatTime(time) {
             return dayjs(time).format('HH:mm')
+        },
+        reset() {
+            this.buefyTimepickerBridge = dayjs().startOf('day').toDate() // Set to 00:00
         }
     }
 }

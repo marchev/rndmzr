@@ -48,11 +48,9 @@
                 <tr v-for="task in props.row.tasks" :key="task.id">
                     <td></td>
                     <td>{{ task.name }}</td>
-                    <td v-for="(_, index) in weekDates" :key="index" class="has-text-centered">
-                        <div class="duration-picker mx-3 px-1">
-                            <duration-picker v-model="timeEntries[index][task.id]">
-                            </duration-picker>
-                        </div>
+                    <td v-for="(_, index) in weekDates" :key="index" class="has-text-centered timepicker-cell">
+                        <duration-picker v-model="timeEntries[index][task.id]">
+                        </duration-picker>
                     </td>
                 </tr>
             </template>
@@ -99,6 +97,18 @@
 <style>
 nav.pagination small {
     display:none;
+}
+
+td.timepicker-cell {
+    padding: 8px 0px;
+}
+
+div.hidden-clear-button {
+    visibility: hidden;
+}
+
+td.timepicker-cell:hover div.hidden-clear-button, button.clear-timepicker:hover {
+    visibility: visible;
 }
 </style>
 
