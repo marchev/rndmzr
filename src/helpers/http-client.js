@@ -1,5 +1,8 @@
 import axios from 'axios'
 import rateLimit from 'axios-rate-limit'
+import * as rax from 'retry-axios'
+
+rax.attach()
 
 const httpClient = rateLimit(axios.create({
     baseURL: 'https://api.clockify.me/api/v1',
@@ -7,8 +10,13 @@ const httpClient = rateLimit(axios.create({
     headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
+    },
+    raxConfig: {
+      retry: 3,
+      backoffType: 'exponential',
+      httpMethodsToRetry: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
     }
-}), { maxRPS: 8 });
+}), { maxRPS: 8 }); // Clockify accepts 10 RPS, 8 should be a safe bet
 
 httpClient.interceptors.request.use(
     async config => {
