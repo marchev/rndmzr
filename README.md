@@ -1,4 +1,4 @@
-## rndmzr
+# rndmzr
 Chrome extension which *automagically* generates and submits Clockify timesheets based on a CAPEX/OPEX ratio profile.
 
 ## Motivation
