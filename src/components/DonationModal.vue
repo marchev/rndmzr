@@ -51,7 +51,8 @@ export default {
       this.showModal = true
     },
     async fetchDonatedSoFar() {
-      const { data } = await this.$http.get('https://api.keyvalue.xyz/ed968af1/rndmzr-donations')
+      const { data } = await this.$http.get('https://gitcdn.link/repo/marchev/rndmzr-stats/main/donations')
+      console.log(`Donations: ${data}`)
       return data 
     }
   }
