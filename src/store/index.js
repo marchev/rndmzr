@@ -13,6 +13,8 @@ export default new Vuex.Store({
     overrideMode: false,
     projects: [],
     userInfo: {},
+    capexOpexViolationMode: false,
+    capexOpexViolationThreshold: 5,
     status: 'UNSUBMITTED'
   },
   getters: {
@@ -31,6 +33,15 @@ export default new Vuex.Store({
     },
   },
   plugins: [createPersistedState({
-    paths: ['profile', 'apiKey', 'softSubmit', 'overrideMode', 'userInfo', 'projects']
+    paths: [
+      'profile',
+      'apiKey',
+      'softSubmit',
+      'overrideMode',
+      'capexOpexViolationMode',
+      'capexOpexViolationThreshold',
+      'userInfo',
+      'projects'
+    ]
   })]
 })

@@ -1,3 +1,6 @@
+import dayjs from '@/helpers/dayjs'
+import Fraction from 'fraction.js'
+
 export default class ProfileService {
 
     ENGINEERING_MANAGER = {
@@ -81,5 +84,32 @@ export default class ProfileService {
 
     getDistributionProfile(profile) {
         return this.DISTRIBUTION_PROFILE[profile]
+    }
+
+    getExpectedDailyDistribution(profile, dailyTotal) {
+        const capex = this.DISTRIBUTION_PROFILE[profile]['distribution']['capex']
+        const opex = this.DISTRIBUTION_PROFILE[profile]['distribution']['opex']
+
+        const capexFraction = Fraction(capex).div(capex + opex)
+        const opexFraction = Fraction(opex).div(capex + opex)
+
+        let expectedCapex = dayjs.duration(capexFraction.mul(dailyTotal.asMinutes()), 'minutes')
+        let expectedOpex = dayjs.duration(opexFraction.mul(dailyTotal.asMinutes()), 'minutes')
+
+        const expectedCapexMillis = expectedCapex.seconds() * 1000 + expectedCapex.milliseconds()
+        const expectedOpexMillis = expectedOpex.seconds() * 1000 + expectedOpex.milliseconds()
+
+        if (expectedCapexMillis >= 30_000) {
+            expectedCapex = expectedCapex.add(expectedOpexMillis, 'ms')
+            expectedOpex = expectedOpex.subtract(expectedOpexMillis, 'ms')
+        } else {
+            expectedCapex = expectedCapex.subtract(expectedCapexMillis, 'ms')
+            expectedOpex = expectedOpex.add(expectedCapexMillis, 'ms')
+        }
+
+        return {
+            capex: expectedCapex,
+            opex: expectedOpex
+        }
     }
 }

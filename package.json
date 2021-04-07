@@ -19,6 +19,7 @@
     "chrome-extension-async": "^3.4.1",
     "core-js": "^3.6.5",
     "dayjs": "^1.10.4",
+    "fraction.js": "^4.0.13",
     "lodash.debounce": "^4.0.8",
     "retry-axios": "^2.4.0",
     "vue": "^2.6.11",

@@ -30,12 +30,40 @@
             </b-switch>
           </b-tooltip>
         </b-field>
+        <b-field grouped label="CAPEX/OPEX Ratio Violation">
+          <b-field>
+            <b-tooltip multilined label="Shows a warning when the CAPEX/OPEX ratio deviates from the given threshold"
+            position="is-right"
+            size="is-large">
+              <b-switch v-model="capexOpexViolationModeValue" type="is-default" class="mt-1 mr-0">
+              </b-switch>
+            </b-tooltip>
+          </b-field>
+          <b-field>
+            <b-input
+                class="capexOpexViolationThreshold"
+                v-model="capexOpexViolationThresholdValue"
+                :disabled="!capexOpexViolationModeValue"
+                type="number"
+                min="1"
+                max="100"
+                icon="percentage"
+                size="is-small">
+            </b-input>
+          </b-field>
+        </b-field>
         <div class="has-text-right">
           <b-button type="is-primary" class="my-2" @click="saveSettings">Save</b-button>
         </div>
       </div>
   </div>
 </template>
+
+<style>
+div.capexOpexViolationThreshold input {
+  font-weight: 600;
+}
+</style>
 
 <script>
 import { mapFields } from 'vuex-map-fields'
@@ -47,7 +75,9 @@ export default {
       'profile',
       'apiKey',
       'softSubmit',
-      'overrideMode'
+      'overrideMode',
+      'capexOpexViolationMode',
+      'capexOpexViolationThreshold'
     ])
   },
   data () {
@@ -56,6 +86,8 @@ export default {
       apiKeyValue: '',
       softSubmitValue: false,
       overrideModeValue: false,
+      capexOpexViolationModeValue: false,
+      capexOpexViolationThresholdValue: 5,
       'profiles': [
         { id: 'engineering-manager', label: 'Engineering Manager' },
         { id: 'agile-delivery-lead', label: 'Agile Delivery Lead' },
@@ -69,6 +101,8 @@ export default {
     this.apiKeyValue = this.apiKey
     this.softSubmitValue = this.softSubmit
     this.overrideModeValue = this.overrideMode
+    this.capexOpexViolationModeValue = this.capexOpexViolationMode
+    this.capexOpexViolationThresholdValue = this.capexOpexViolationThreshold
   },
   methods: {
     async saveSettings() {
@@ -76,6 +110,8 @@ export default {
       this.apiKey = this.apiKeyValue
       this.softSubmit = this.softSubmitValue
       this.overrideMode = this.overrideModeValue
+      this.capexOpexViolationMode = this.capexOpexViolationModeValue
+      this.capexOpexViolationThreshold = parseInt(this.capexOpexViolationThresholdValue)
       this.$buefy.toast.open('Settings saved')
     }
   }
