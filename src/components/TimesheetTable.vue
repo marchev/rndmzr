@@ -1,9 +1,9 @@
 <template>
-  <section>
+  <section id="timesheet">
         <b-message v-if="capexOpexRatioViolation" type="is-warning" has-icon class="mt-5">
-            <span class="has-text-weight-bold">CAPEX/OPEX Ratio Violation</span><br/>
+            <span class="has-text-weight-semibold">CAPEX/OPEX Ratio Violation</span><br/>
             Some of the reported hours violate the predefined CAPEX/OPEX ratio for your profile.
-            For more details, see the <a href="#total"><b>Total</b></a> section.
+            For more details, see the <a href="#total"><span class="has-text-weight-semibold">Total</span></a> section.
         </b-message>
         <div id="generator" class="generator mt-4 columns">
             <div class="column">
@@ -82,14 +82,14 @@
                             <b-tooltip class="capex-opex-tooltip" type="is-warning">
                                 <template v-slot:content>
                                     <div>
-                                        <span class="semi-bold">CAPEX</span>
-                                        Expected: <span class="semi-bold">{{ expectedDailyTotalsPerType[index].capex | hoursCount }}</span>
-                                        Actual: <span class="semi-bold">{{ actualDailyTotalsPerType[index].capex | hoursCount }}</span>
+                                        <span class="semi-bold">Expected</span>
+                                        CAPEX: <span class="semi-bold">{{ expectedDailyTotalsPerType[index].capex | hoursCount }}</span>
+                                        OPEX: <span class="semi-bold">{{ expectedDailyTotalsPerType[index].opex | hoursCount }}</span>
                                     </div>
                                     <div>
-                                        <span class="semi-bold">OPEX</span>
-                                        Expected: <span class="semi-bold">{{ expectedDailyTotalsPerType[index].opex | hoursCount }}</span>
-                                        Actual: <span class="semi-bold">{{ actualDailyTotalsPerType[index].opex | hoursCount }}</span>
+                                        <span class="semi-bold">Actual</span>
+                                        CAPEX: <span class="semi-bold">{{ actualDailyTotalsPerType[index].capex | hoursCount }}</span>
+                                        OPEX: <span class="semi-bold">{{ actualDailyTotalsPerType[index].opex | hoursCount }}</span>
                                     </div>
                                 </template>
                                 <b-icon
@@ -142,6 +142,10 @@
 </template>
 
 <style>
+html {
+	scroll-behavior: smooth;
+}
+
 .tag {
     cursor: default;
 }
@@ -172,6 +176,16 @@ span.capex-opex-violation-hidden {
 
 .semi-bold {
     font-weight: 600;
+}
+
+.capex-badge {
+    background-color: #53599A !important;
+    color: #fff !important;
+}
+
+.opex-badge {
+    background-color: #D36135 !important;
+    color: #fff !important;
 }
 </style>
 
@@ -468,6 +482,10 @@ export default {
             this.previousPage = currentPage
         },
         getTaskTagClass(task) {
+            // return {
+            //     'capex-badge': task.type === 'capex', // CAPEX = blue
+            //     'opex-badge': task.type === 'opex', // OPEX = yellow
+            // }
             return {
                 'is-info': task.type === 'capex', // CAPEX = blue
                 'is-warning': task.type === 'opex', // OPEX = yellow
