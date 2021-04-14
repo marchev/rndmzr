@@ -11,7 +11,7 @@
             </div>
         </div>
         <b-table class="mb-6"
-            :data="showProfileTasksOnly ? profileProjects : projects"
+            :data="showProfileTasksOnly ? profileProjectsPlusTimeOff : projects"
             :default-sort="['name', 'asc']"
             ref="table"
             detailed

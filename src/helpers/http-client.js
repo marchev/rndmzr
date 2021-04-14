@@ -6,7 +6,7 @@ rax.attach()
 
 const httpClient = rateLimit(axios.create({
     baseURL: 'https://api.clockify.me/api/v1',
-    timeout: 10000,
+    timeout: 60000,
     headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'

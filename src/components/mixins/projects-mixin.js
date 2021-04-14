@@ -1,6 +1,6 @@
 import { mapFields } from 'vuex-map-fields'
 
-import { isProfileTask } from '@/helpers/timesheet-helpers'
+import { isProfileTask, findDayOffTask } from '@/helpers/timesheet-helpers'
 
 export default {
     computed: {
@@ -15,6 +15,14 @@ export default {
             return this.projects.map(project => ({
                 ...project,
                 tasks: project.tasks.filter(task => isProfileTask(task, this.distributionProfile))
+            }))
+        },
+        profileProjectsPlusTimeOff: function () { // TODO: Come up with a better approach
+            const dayOffTask = findDayOffTask(this.projects)
+            return this.projects.map(project => ({
+                ...project,
+                tasks: project.tasks.filter(task => isProfileTask(task, this.distributionProfile) ||
+                                                    task.id === dayOffTask.id)
             }))
         },
         projectIds: function () {
