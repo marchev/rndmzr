@@ -1,5 +1,5 @@
 <template>
-    <div class="columns is-gapless timepicker-container">
+    <div class="columns is-gapless timepicker-container" :class="{ 'is-zero': isZero }">
         <div class="column is-one-fifth">
             &nbsp;
         </div>
@@ -56,6 +56,9 @@ export default {
         },
         locked: function() {
             return this.status === 'PENDING' || this.status === 'APPROVED'
+        },
+        isZero: function() {
+            return this.value.asMinutes() == 0
         }
     },
     methods: {

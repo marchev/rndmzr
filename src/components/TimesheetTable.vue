@@ -1,10 +1,6 @@
 <template>
   <section id="timesheet">
-        <b-message v-if="capexOpexRatioViolation" type="is-warning" has-icon class="mt-5">
-            <span class="has-text-weight-semibold">CAPEX/OPEX Ratio Violation</span><br/>
-            Some of the reported hours violate the predefined CAPEX/OPEX ratio for your profile.
-            For more details, see the <a href="#total"><span class="has-text-weight-semibold">Total</span></a> section.
-        </b-message>
+        <capex-opex-violation-message></capex-opex-violation-message>
         <div id="generator" class="generator mt-4 columns">
             <div class="column">
             <b-button @click="randomize()" :disabled="locked" type="is-dark" class="mr-2">Randomize!</b-button>
@@ -42,11 +38,20 @@
             <b-table-column v-for="(weekDate, index) in weekDates"
                 :key="weekDate | weekday"
                 :label="weekDate | fulldate"
-                centered
-                v-slot="project">
-                <b-tag type="is-light has-text-weight-semibold">
-                    {{ dayTotalsPerProject[index][project.row.id] | hoursCount }}
-                </b-tag>
+                centered>
+
+                <template #subheading>
+                    <quick-actions
+                        :timeEntry="timeEntries[index]"
+                        :disabled="locked">
+                    </quick-actions>
+                </template>
+
+                <template v-slot="project">
+                    <b-tag type="is-light has-text-weight-semibold">
+                        {{ dayTotalsPerProject[index][project.row.id] | hoursCount }}
+                    </b-tag>
+                </template>
             </b-table-column>
 
             <template slot="detail" slot-scope="props">
@@ -72,34 +77,16 @@
                 <th>
                     <div id="total" class="th-wrap">Total:</div>
                 </th>
-                <th v-for="(_, index) in weekDates" :key="index">
+                <th v-for="(_, dayIndex) in weekDates" :key="dayIndex">
                     <div class="th-wrap is-centered pl-5">
-                        <span class="tag" :class="getDayTotalsTagClass(index)">
-                            {{ dayTotals[index] | hoursCount }}
+                        <span class="tag" :class="getDayTotalsTagClass(dayIndex)">
+                            {{ dayTotals[dayIndex] | hoursCount }}
                         </span>
-                        <!-- CAPEX / OPEX violation -->
-                        <span class="pt-1" :class="getCapexOpexViolationIconClass(index)">
-                            <b-tooltip class="capex-opex-tooltip" type="is-warning">
-                                <template v-slot:content>
-                                    <div>
-                                        <span class="semi-bold">Expected</span>
-                                        CAPEX: <span class="semi-bold">{{ expectedDailyTotalsPerType[index].capex | hoursCount }}</span>
-                                        OPEX: <span class="semi-bold">{{ expectedDailyTotalsPerType[index].opex | hoursCount }}</span>
-                                    </div>
-                                    <div>
-                                        <span class="semi-bold">Actual</span>
-                                        CAPEX: <span class="semi-bold">{{ actualDailyTotalsPerType[index].capex | hoursCount }}</span>
-                                        OPEX: <span class="semi-bold">{{ actualDailyTotalsPerType[index].opex | hoursCount }}</span>
-                                    </div>
-                                </template>
-                                <b-icon
-                                    type="is-danger"
-                                    icon="exclamation-circle"
-                                    size="is-small"
-                                    multilined>
-                                </b-icon>
-                            </b-tooltip>
-                        </span>
+                        <capex-opex-violation-icon
+                            :dayIndex="dayIndex"
+                            :dayTotal="dayTotals[dayIndex]"
+                            :timeEntry="timeEntries[dayIndex]">
+                        </capex-opex-violation-icon>
                     </div>
                 </th>
             </template>
@@ -141,9 +128,17 @@
   </section>
 </template>
 
-<style>
+<style lang="scss">
 html {
 	scroll-behavior: smooth;
+}
+
+thead tr:first-of-type th {
+    border: none;
+}
+
+tr.is-subheading th {
+    padding-top: 0px;
 }
 
 .tag {
@@ -190,20 +185,33 @@ span.capex-opex-violation-hidden {
 </style>
 
 <script>
-import dayjs from '@/helpers/dayjs'
 import { mapFields } from 'vuex-map-fields'
-import ProfileService from '../services/profile-service'
-import TimesheetGeneratorService from '../services/timesheet-generator-service'
-import DurationPicker from './util/DurationPicker.vue'
+
 import { currentWeekStart, weeksInYear, daysInWeek, zeroDuration } from '@/helpers/time-helpers'
-import { getAllProjectsTasks, isProfileTask, getDayEntries, timeToStartEntries, convertToTimesheet } from '@/helpers/timesheet-helpers'
+import { getDayEntries, timeToStartEntries, convertToTimesheet } from '@/helpers/timesheet-helpers'
+import ProfileService from '@/services/profile-service'
+import TimesheetGeneratorService from '@/services/timesheet-generator-service'
+
+import DurationPicker from '@/components/util/DurationPicker.vue'
+import QuickActions from '@/components/util/QuickActions.vue'
+import CapexOpexViolationIcon from '@/components/util/CapexOpexViolationIcon.vue'
+import CapexOpexViolationMessage from '@/components/util/CapexOpexViolationMessage.vue'
+
+import filters from '@/components/mixins/filters-mixin'
+import projects from '@/components/mixins/projects-mixin'
 
 const profileService = new ProfileService()
 const timesheetGeneratorService = new TimesheetGeneratorService()
 
 export default {
     name: 'TimesheetTable',
-    components: { DurationPicker },
+    mixins: [ filters, projects ],
+    components: {
+        DurationPicker,
+        QuickActions,
+        CapexOpexViolationIcon,
+        CapexOpexViolationMessage
+    },
     data () {
         return {
             currentWeekStart: currentWeekStart(),
@@ -216,20 +224,17 @@ export default {
             timesheetLoading: false
         }
     },
-    async created() {
+    created() {
         this.distributionProfile = profileService.getDistributionProfile(this.profile)
         this.initTimeEntries(this.projects)
     },
     computed: {
         ...mapFields([
             'userInfo',
-            'projects',
-            'profile',
             'softSubmit',
             'overrideMode',
             'status',
-            'capexOpexViolationMode',
-            'capexOpexViolationThreshold'
+            'capexOpexRatioViolations'
         ]),
         weekDates: function() {
             const weekDates = []
@@ -238,23 +243,8 @@ export default {
             }
             return weekDates
         },
-        projectsCount: function () {
-            return this.projects.length
-        },
         totalPages: function () {
             return this.projectsCount * weeksInYear() * 2 // An year ahead and an year back
-        },
-        profileProjects: function () {
-            return this.projects.map(project => ({
-                ...project,
-                tasks: project.tasks.filter(task => isProfileTask(task, this.distributionProfile))
-            }))
-        },
-        projectIds: function () {
-            return this.projects.map(project => project.id)
-        },
-        allTasks: function () {
-            return this.projects.flatMap(project => project.tasks)
         },
         dayTotals: function () {
             const dayTotals = []
@@ -264,40 +254,6 @@ export default {
             }
 
             return dayTotals
-        },
-        expectedDailyTotalsPerType: function () {
-            return this.dayTotals.map(dayTotal => profileService.getExpectedDailyDistribution(this.profile, dayTotal))
-        },
-        actualDailyTotalsPerType: function()  {
-            const zeroDuration = dayjs.duration(0)
-
-            return this.timeEntries.map(entry => 
-                Object.entries(entry).reduce((expectedCapexOpex, [taskId, duration]) => {
-                    const [taskType] = this.allTasks.filter(task => task.id === taskId).map(task => task.type)
-                    if (taskType === 'capex') {
-                        expectedCapexOpex.capex = expectedCapexOpex.capex.add(duration)
-                    } else {
-                        expectedCapexOpex.opex = expectedCapexOpex.opex.add(duration)
-                    }
-                    return expectedCapexOpex
-                }, { capex: zeroDuration, opex: zeroDuration })
-            )
-        },
-        dailyCapexOpexRatioViolations: function() {
-            return this.actualDailyTotalsPerType.map((totalPerType, dayIndex) => {
-                const allowedDeviation =
-                    this.capexOpexViolationThreshold / 100 * this.dayTotals[dayIndex].asMinutes()
-                const actualCapexMinutes = totalPerType.capex.asMinutes()
-                const expectedCapexMinutes = this.expectedDailyTotalsPerType[dayIndex].capex.asMinutes()
-                const lessThanThreshold =
-                    actualCapexMinutes < (expectedCapexMinutes - allowedDeviation)
-                const greaterThanThreshold =
-                    actualCapexMinutes > (expectedCapexMinutes + allowedDeviation)
-                return this.capexOpexViolationMode && (lessThanThreshold || greaterThanThreshold)
-            })
-        },
-        capexOpexRatioViolation: function() {
-            return this.dailyCapexOpexRatioViolations.reduce((previous, current) => previous || current, false)
         },
         dayTotalsPerProject: function () { // TODO: Optimize implementation
             const dayTotalsPerProject = []
@@ -331,8 +287,9 @@ export default {
     },
     watch: {
         /* eslint-disable no-unused-vars */
-        projects: function (_) {
-            this.initTimeEntries()
+        projects: {
+            immediate: true,
+            handler: 'initTimeEntries'
         },
         currentWeekStart: {
             immediate: true,
@@ -344,8 +301,6 @@ export default {
             this.$refs.table.toggleDetails(row)
         },
         initTimeEntries() {
-            const allProjectsTasks = getAllProjectsTasks(this.projects)
-
             for (const dayIndex in this.weekDates) {
                 // Init time entries for the day
                 if (!this.timeEntries[dayIndex]) {
@@ -353,7 +308,7 @@ export default {
                 }
 
                 // Add *new* tasks to the day time entries
-                allProjectsTasks.forEach(taskId => {
+                this.allTaskIds.forEach(taskId => {
                     if (!this.timeEntries[dayIndex][taskId]) {
                         this.$set(this.timeEntries[dayIndex], taskId, zeroDuration())
                     }
@@ -361,7 +316,7 @@ export default {
 
                 // Remove dangling tasks
                 for (const taskId in this.timeEntries[dayIndex]) {
-                    if (!allProjectsTasks.includes(taskId)) {
+                    if (!this.allTaskIds.includes(taskId)) {
                         this.$delete(this.timeEntries[dayIndex], taskId)
                     }
                 }
@@ -378,12 +333,6 @@ export default {
                     }
                 })
             })
-        },
-        getTaskProjectId(taskId) {
-            const [ projectId ] = this.projects
-                .filter(project => project.tasks.filter(task => task.id === taskId).length)
-                .map(project => project.id)
-            return projectId
         },
         randomize() {
             this.reset()
@@ -494,27 +443,11 @@ export default {
         getDayTotalsTagClass(index) {
             return {
                 'is-danger': index <= 4 && this.dayTotals[index].asHours() < 8,
-                'is-success': index <= 4 && this.dayTotals[index].asHours() >= 8 && !this.dailyCapexOpexRatioViolations[index],
+                'is-success': index <= 4 && this.dayTotals[index].asHours() >= 8 && !this.capexOpexRatioViolations[index],
                 'is-light': index > 4 && this.dayTotals[index].asMinutes() === 0,
-                'is-warning': (index > 4 && this.dayTotals[index].asMinutes() > 0) || this.dailyCapexOpexRatioViolations[index]
-            }
-        },
-        getCapexOpexViolationIconClass(index) {
-            return {
-                'capex-opex-violation-visible': this.dailyCapexOpexRatioViolations[index],
-                'capex-opex-violation-hidden': !this.dailyCapexOpexRatioViolations[index]
+                'is-warning': (index > 4 && this.dayTotals[index].asMinutes() > 0) || this.capexOpexRatioViolations[index]
             }
         }
-    },
-    filters: {
-        weekday: date => date.format('dddd'),
-        fulldate: date => date.format('ddd, MMM D'),
-        hoursCount: date => date.format('H:mm'),
-        uppercase: str => str.toUpperCase(),
-        dropTaskPrefixSuffix: taskName => taskName
-            .replace(' (OPEX)', '')
-            .replace(' (CAPEX)', '')
-            .replace(/[0-9]+\. /, '')
     }
 }
 </script>

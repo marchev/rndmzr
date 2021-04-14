@@ -13,6 +13,7 @@ export default new Vuex.Store({
     overrideMode: false,
     projects: [],
     userInfo: {},
+    capexOpexRatioViolations: [],
     capexOpexViolationMode: false,
     capexOpexViolationThreshold: 5,
     status: 'UNSUBMITTED'

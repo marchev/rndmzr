@@ -1,12 +1,7 @@
 import dayjs from '@/helpers/dayjs'
 
-export function getAllProjectsTasks(projects) {
-    const allProjectsTasks = []
-    projects.forEach(project => {
-        project.tasks.forEach(task => allProjectsTasks.push(task.id))
-    })
-    return allProjectsTasks
-}
+const DAY_OFF_TASK = 'Absence - Day off'
+const TRAINING_TASK = 'Admin - Internal Paysafe Training'
 
 export const isProfileTask = (task, distributionProfile) =>
     !!distributionProfile.tasks
@@ -41,3 +36,13 @@ export const convertToTimesheet = (clockifyEntries, weekStart) => clockifyEntrie
     },
     []
 )
+
+export const findDayOffTask = (projects) => projects
+    .flatMap(project => project.tasks)
+    .filter(task => task.name.includes(DAY_OFF_TASK))
+    .shift()
+
+export const findTrainingTask = (projects) => projects
+    .flatMap(project => project.tasks)
+    .filter(task => task.name.includes(TRAINING_TASK))
+    .shift()
