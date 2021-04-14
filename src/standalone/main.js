@@ -12,6 +12,12 @@ import { fas } from '@fortawesome/free-solid-svg-icons'
 import { fab } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
+import * as Panelbear from "@panelbear/panelbear-js"
+
+// Setup Panelbear
+Panelbear.load('3nnrFy5shOb')
+Panelbear.trackPageview()
+
 // Enable Devtools
 Vue.config.devtools = true
 
@@ -31,6 +37,7 @@ const clockify = new ClockifyService(httpClient)
 // Inject 
 Vue.prototype.$http = httpClient
 Vue.prototype.$clockify = clockify
+Vue.prototype.$panelbear = Panelbear
 
 /* eslint-disable no-new */
 new Vue({

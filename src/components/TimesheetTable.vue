@@ -367,8 +367,10 @@ export default {
                 await this.fetchAndPopulateEntriesForTheWeek(this.currentWeekStart)
 
                 if (!this.softSubmit) {
+                    this.$panelbear.track('timesheet.hard_submit')
                     this.openSnackbar('Your timesheet has been successfully submitted for approval', 'is-success')
                 } else {
+                    this.$panelbear.track('timesheet.soft_submit')
                     this.openSnackbar('Your time entries have been successfully created', 'is-success')
                 }
             } catch (err) {

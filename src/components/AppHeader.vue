@@ -77,6 +77,7 @@ export default {
       this.isMobileMenuVisible = !this.isMobileMenuVisible
     },
     openDonationModal() {
+      this.$panelbear.track('donation_modal.open')
       this.$refs.donationModal.open()
     }
   }

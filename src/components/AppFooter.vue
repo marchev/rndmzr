@@ -5,7 +5,7 @@
       <span class="semi-bold">rndmzr</span> by <a href="https://github.com/marchev">marchev</a>
     </p>
     <p>
-      <a href="https://github.com/marchev/rndmzr" target="_blank">
+      <a @click="clickGithub()" href="https://github.com/marchev/rndmzr" target="_blank">
         <b-icon
             pack="fab"
             size="is-medium"
@@ -13,7 +13,7 @@
             icon="github">
         </b-icon>
       </a>
-      <a href="slack://channel?team=TE8V4MPRQ&amp;id=C01STNCV1UM" target="_blank">
+      <a @click="clickSlack()" href="slack://channel?team=TE8V4MPRQ&amp;id=C01STNCV1UM" target="_blank">
         <b-icon
             pack="fab"
             size="is-medium"
@@ -28,6 +28,14 @@
 
 <script>
 export default {
-  name: 'AppFooter'
+  name: 'AppFooter',
+  methods: {
+    clickGithub() {
+      this.$panelbear.track('footer.click_github')
+    },
+    clickSlack() {
+      this.$panelbear.track('footer.click_slack')
+    }
+  }
 }
 </script>

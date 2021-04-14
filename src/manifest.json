@@ -9,6 +9,7 @@
     "https://global.api.clockify.me/",
     "https://gitcdn.link/"
   ],
+  "content_security_policy": "script-src 'self' https://cdn.panelbear.com; object-src 'self'",
   "icons": {
     "16": "icons/16.png",
     "48": "icons/48.png",
