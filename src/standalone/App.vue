@@ -30,6 +30,9 @@ export default {
   },
   async created() {
     this.userInfo = await this.$clockify.getUserInfo()
+    this.$bugsnag.addOnError(event => {
+      event.addMetadata('user', 'email', this.userInfo.email)
+    })
   },
   computed: {
     ...mapFields([
