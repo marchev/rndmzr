@@ -7,7 +7,8 @@
   "permissions": [
     "https://api.clockify.me/",
     "https://global.api.clockify.me/",
-    "https://gitcdn.link/"
+    "https://gitcdn.link/",
+    "notifications"
   ],
   "content_security_policy": "script-src 'self' https://cdn.panelbear.com; object-src 'self'",
   "icons": {

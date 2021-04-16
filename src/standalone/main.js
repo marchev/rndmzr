@@ -6,6 +6,8 @@ import BugsnagPluginVue from '@bugsnag/plugin-vue'
 Bugsnag.start({
   appVersion: version,
   apiKey: 'aa69e867b15752ede4c55948a83f144e',
+  maxBreadcrumbs: 100,
+  enabledBreadcrumbTypes: ['error'],
   plugins: [new BugsnagPluginVue()],
   onError: event => {
     event.errors[0].stacktrace = event.errors[0].stacktrace.map(frame => {

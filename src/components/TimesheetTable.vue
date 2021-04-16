@@ -4,7 +4,7 @@
         <div id="generator" class="generator mt-4 columns">
             <div class="column">
             <b-button @click="randomize()" :disabled="locked" type="is-dark" class="mr-2">Randomize!</b-button>
-            <b-button @click="reset()" :disabled="locked" type="is-light">Reset</b-button>
+            <b-button @click="resetClicked()" :disabled="locked" type="is-light">Reset</b-button>
             </div>
             <div class="column has-text-right">
             <b-button @click="submit()" :disabled="isTimesheetEmpty || locked" type="is-danger">Submit</b-button>
@@ -294,6 +294,9 @@ export default {
         currentWeekStart: {
             immediate: true,
             handler: 'fetchAndPopulateEntriesForTheWeek'
+        },
+        showProfileTasksOnly: function(newValue) {
+            this.$bugsnag.leaveBreadcrumb('Show profile tasks only switch toggled', { newValue })
         }
     },
     methods: {
@@ -335,13 +338,19 @@ export default {
             })
         },
         randomize() {
+            this.$bugsnag.leaveBreadcrumb('Randomize! button clicked')
             this.reset()
             const generatedTimesheet = timesheetGeneratorService.generateTimesheet(this.distributionProfile, this.profileProjects)
             this.populateTimeEntries(generatedTimesheet)
+            this.$bugsnag.leaveBreadcrumb('Populated randomized timesheet', { generatedTimesheet })
             this.$buefy.toast.open({
                 message: 'Successfully randomized that sh*t 🧐',
                 queue: false
             })
+        },
+        resetClicked() {
+            this.$bugsnag.leaveBreadcrumb('Reset button clicked')
+            this.reset()
         },
         reset() {
             Object.entries(this.timeEntries).forEach(([dayIndex, tasks]) => {
@@ -351,6 +360,7 @@ export default {
             })
         },
         async submit() {
+            this.$bugsnag.leaveBreadcrumb('Submit button clicked')
             try {
                 this.isLoading = true
                 const clockifyEntries = []
@@ -375,6 +385,7 @@ export default {
                 }
             } catch (err) {
                 this.openSnackbar('Error occurred during timesheet submission, please check status in the Clockify App', 'is-danger')
+                this.$bugsnag.notify(err)
                 console.error(err)
             } finally {
                 this.isLoading = false
@@ -383,6 +394,7 @@ export default {
         async purgeClockifyEntries() {
             const { entries } = await this.$clockify.getWeekEntries(this.userInfo.activeWorkspace, this.userInfo.id, this.currentWeekStart)
             await Promise.all(entries.map(async entry => await this.$clockify.deleteTimeEntry(this.userInfo.activeWorkspace, entry.id)))
+            this.$bugsnag.leaveBreadcrumb('Purged existing Clockify entries')
         },
         createClockifyTimeEntries(dayIndex) {
             const clockifyDayEntries = []
@@ -404,9 +416,11 @@ export default {
         },
         async submitClockifyEntries(clockifyEntries) {
             await Promise.all(clockifyEntries.map(async timeEntry => await this.$clockify.createTimeEntry(this.userInfo.activeWorkspace, timeEntry)))
+            this.$bugsnag.leaveBreadcrumb('Timesheet entries submitted to Clockify', { clockifyEntries })
 
             if (!this.softSubmit) {
                 await this.$clockify.submitApprovalRequest(this.userInfo.activeWorkspace, this.userInfo.id, this.currentWeekStart)
+                this.$bugsnag.leaveBreadcrumb('Timesheet entries submitted for approval')
             }
         },
         async fetchAndPopulateEntriesForTheWeek(weekStart) {
@@ -433,10 +447,6 @@ export default {
             this.previousPage = currentPage
         },
         getTaskTagClass(task) {
-            // return {
-            //     'capex-badge': task.type === 'capex', // CAPEX = blue
-            //     'opex-badge': task.type === 'opex', // OPEX = yellow
-            // }
             return {
                 'is-info': task.type === 'capex', // CAPEX = blue
                 'is-warning': task.type === 'opex', // OPEX = yellow

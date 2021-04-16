@@ -33,6 +33,7 @@ export default {
     this.$bugsnag.addOnError(event => {
       event.addMetadata('user', 'email', this.userInfo.email)
     })
+    this.$bugsnag.leaveBreadcrumb('App loaded')
   },
   computed: {
     ...mapFields([

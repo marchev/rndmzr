@@ -7,7 +7,7 @@
           type="is-info"
           size="is-medium"
           :closable="!project.unremovable"
-          @close="removeProject(project)">{{ project.name }}</b-tag>
+          @close="removeProjectFromMyProjects(project)">{{ project.name }}</b-tag>
     </b-taglist>
     <b-field label="Search projects">
         <b-autocomplete
@@ -78,7 +78,8 @@ export default {
           projects.forEach(project => this.foundProjects.push(project))
         } catch (err) {
           this.foundProjects = []
-          throw err
+          this.$bugsnag.notify(err)
+          console.error(err)
         } finally {
           this.isFetching = false
         }
@@ -96,6 +97,11 @@ export default {
       }))
       project.tasks = tasks
       this.addProject(project)
+      this.$bugsnag.leaveBreadcrumb('Project added', { project })
+    },
+    async removeProjectFromMyProjects(project) {
+      this.$bugsnag.leaveBreadcrumb('Project removed', { project })
+      this.removeProject(project)
     }
   }
 }
