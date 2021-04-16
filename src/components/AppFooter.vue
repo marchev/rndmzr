@@ -21,6 +21,13 @@
             icon="slack-hash">
         </b-icon>
       </a>
+      <a @click="clickAnalytics()" href="https://app.panelbear.com/share/4A5ygjmAnVhfeOLoyvMJoU/" target="_blank">
+        <b-icon
+            size="is-medium"
+            type="is-dark"
+            icon="chart-bar">
+        </b-icon>
+      </a>
     </p>
   </div>
 </footer>
@@ -35,6 +42,9 @@ export default {
     },
     clickSlack() {
       this.$panelbear.track('footer.click_slack')
+    },
+    clickAnalytics() {
+      this.$panelbear.track('footer.click_analytics')
     }
   }
 }
