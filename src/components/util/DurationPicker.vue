@@ -14,12 +14,12 @@
                     :incrementHours="1"
                     v-model="buefyTimepickerBridge"
                     :time-formatter="formatTime"
-                    :disabled="locked"
+                    :disabled="disabled"
                     >
                 </b-timepicker>
             </b-field>
         </div>
-        <div v-show="!locked" class="column is-one-fifth hidden-clear-button">
+        <div v-show="!disabled" class="column is-one-fifth hidden-clear-button">
             <button @click="reset" class="clear-timepicker delete is-small mt-2"></button>
         </div>
     </div>
@@ -32,7 +32,8 @@ import dayjs from '@/helpers/dayjs'
 export default {
     name: 'DurationPicker',
     props: {
-        'value': Object
+        'value': Object,
+        'disabled': Boolean
     },
     computed: {
         ...mapFields([
@@ -53,9 +54,6 @@ export default {
                         minutes: v.getMinutes()
                 }))
             }
-        },
-        locked: function() {
-            return this.status === 'PENDING' || this.status === 'APPROVED'
         },
         isZero: function() {
             return this.value.asMinutes() == 0

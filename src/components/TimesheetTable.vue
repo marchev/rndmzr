@@ -3,11 +3,11 @@
         <capex-opex-violation-message></capex-opex-violation-message>
         <div id="generator" class="generator mt-4 columns">
             <div class="column">
-            <b-button @click="randomize()" :disabled="locked" type="is-dark" class="mr-2">Randomize!</b-button>
-            <b-button @click="resetClicked()" :disabled="locked" type="is-light">Reset</b-button>
+            <b-button @click="randomize()" :disabled="locked || timesheetLoading" type="is-dark" class="mr-2">Randomize!</b-button>
+            <b-button @click="resetClicked()" :disabled="locked || timesheetLoading" type="is-light">Reset</b-button>
             </div>
             <div class="column has-text-right">
-            <b-button @click="submit()" :disabled="isTimesheetEmpty || locked" type="is-danger">Submit</b-button>
+            <b-button @click="submit()" :disabled="isTimesheetEmpty || locked || timesheetLoading" type="is-danger">Submit</b-button>
             </div>
         </div>
         <b-table class="mb-6"
@@ -43,7 +43,7 @@
                 <template #subheading>
                     <quick-actions
                         :timeEntry="timeEntries[index]"
-                        :disabled="locked">
+                        :disabled="locked || timesheetLoading">
                     </quick-actions>
                 </template>
 
@@ -64,7 +64,7 @@
                     </td>
                     <td>{{ task.name | dropTaskPrefixSuffix }}</td>
                     <td v-for="(_, index) in weekDates" :key="index" class="has-text-centered timepicker-cell">
-                        <duration-picker v-model="timeEntries[index][task.id]">
+                        <duration-picker v-model="timeEntries[index][task.id]" :disabled="locked || timesheetLoading">
                         </duration-picker>
                     </td>
                 </tr>
@@ -225,6 +225,7 @@ export default {
         }
     },
     created() {
+        this.validateProfile(this.profile)
         this.distributionProfile = profileService.getDistributionProfile(this.profile)
         this.initTimeEntries(this.projects)
     },
@@ -300,6 +301,11 @@ export default {
         }
     },
     methods: {
+        validateProfile(profile) {
+            if (!profile) {
+                throw 'No profile has been configured'
+            }
+        },
         toggle(row) {
             this.$refs.table.toggleDetails(row)
         },
@@ -392,8 +398,8 @@ export default {
             }
         },
         async purgeClockifyEntries() {
-            const { entries } = await this.$clockify.getWeekEntries(this.userInfo.activeWorkspace, this.userInfo.id, this.currentWeekStart)
-            await Promise.all(entries.map(async entry => await this.$clockify.deleteTimeEntry(this.userInfo.activeWorkspace, entry.id)))
+            const { entries } = await this.$clockify.getWeekEntries(this.workspace, this.userInfo.id, this.currentWeekStart)
+            await Promise.all(entries.map(async entry => await this.$clockify.deleteTimeEntry(this.workspace, entry.id)))
             this.$bugsnag.leaveBreadcrumb('Purged existing Clockify entries')
         },
         createClockifyTimeEntries(dayIndex) {
@@ -415,11 +421,11 @@ export default {
             return clockifyDayEntries
         },
         async submitClockifyEntries(clockifyEntries) {
-            await Promise.all(clockifyEntries.map(async timeEntry => await this.$clockify.createTimeEntry(this.userInfo.activeWorkspace, timeEntry)))
+            await Promise.all(clockifyEntries.map(async timeEntry => await this.$clockify.createTimeEntry(this.workspace, timeEntry)))
             this.$bugsnag.leaveBreadcrumb('Timesheet entries submitted to Clockify', { clockifyEntries })
 
             if (!this.softSubmit) {
-                await this.$clockify.submitApprovalRequest(this.userInfo.activeWorkspace, this.userInfo.id, this.currentWeekStart)
+                await this.$clockify.submitApprovalRequest(this.workspace, this.userInfo.id, this.currentWeekStart)
                 this.$bugsnag.leaveBreadcrumb('Timesheet entries submitted for approval')
             }
         },
@@ -427,9 +433,11 @@ export default {
             try {
                 this.timesheetLoading = true
                 if (Object.keys(this.userInfo).length === 0) {
-                    await new Promise(_ => setTimeout(this.fetchTimeEntries.bind(null, weekStart), 100))
+                    await new Promise(_ => setTimeout(this.fetchAndPopulateEntriesForTheWeek.bind(null, weekStart), 100))
                 }
-                const { status, entries } = await this.$clockify.getWeekEntries(this.userInfo.activeWorkspace, this.userInfo.id, weekStart)
+                const { status, entries } = await this.$clockify.getWeekEntries(this.workspace, this.userInfo.id, weekStart)
+                const entriesProjectIds = this.$clockify.getProjectIds(entries)
+                await this.addMissingProjects(entriesProjectIds)
                 this.status = status
                 const timesheet = convertToTimesheet(entries, this.currentWeekStart)
                 this.reset()
@@ -437,6 +445,19 @@ export default {
             } finally {
                 this.timesheetLoading = false
             }
+        },
+        async addMissingProjects(projectIds) {
+            await Promise.all(projectIds.map(async projectId => {
+                if (this.projectIds.includes(projectId)) {
+                    return // Project already exists
+                }
+                const project = await this.$clockify.findProjectById(this.workspace, projectId)
+                if (!project) {
+                    throw new Error(`Cannot find project with projectId ${projectId}`)
+                }
+                await this.addProjectToMyProjects(project)
+                console.log(`Added missing project: projectId=${project.id} projectName=${project.name}`)
+            }))
         },
         openSnackbar(message, type) {
             this.$buefy.snackbar.open({ message, type, position: 'is-top', actionText: 'OK', indefinite: true })

@@ -14,6 +14,11 @@ export default class ClockifyService {
         return data.map(project => ({ id: project.id, name: project.name }))
     }
 
+    async findProjectById(workspace, projectId) {
+        let { data } = await this.httpClient.get(`/workspaces/${workspace}/projects/${projectId}`)
+        return { id: data.id, name: data.name }
+    }
+
     async getProjectTasks(workspace, projectId) {
         const { data } = await this.httpClient.get(`/workspaces/${workspace}/projects/${projectId}/tasks?is-active=true&page-size=200`)
         return data
@@ -32,7 +37,7 @@ export default class ClockifyService {
         const start = weekStart.format()
         const end = weekStart.add(1, 'week').subtract(1, 'millisecond').format()
 
-        const entriesResponse = await this.httpClient.get(`https://global.api.clockify.me/workspaces/${workspace}/timeEntries/users/${userId}?start=${start}&end=${end}&hydrated=true&page-size=500`)
+        const entriesResponse = await this.httpClient.get(`https://global.api.clockify.me/workspaces/${workspace}/timeEntries/users/${userId}?start=${start}&end=${end}&hydrated=false&page-size=500`)
         const weekStatusResponse = await this.httpClient.get(`https://global.api.clockify.me/workspaces/${workspace}/users/${userId}/approval-requests/week-status?start=${weekStart.format()}`)
 
         const entries = entriesResponse.data
@@ -61,6 +66,10 @@ export default class ClockifyService {
 
     getTaskType(taskName) {
         return taskName.toLowerCase().includes('capex') ? 'capex' : 'opex'
+    }
+
+    getProjectIds(clockifyEntries) {
+        return [...new Set(clockifyEntries.map(entry => entry.projectId))]
     }
 
     timeEntry = (start, end, projectId, taskId) => ({

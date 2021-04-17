@@ -83,11 +83,17 @@ export default {
     computed: {
         isWholeDayTraining: function () {
             const trainingTask = findTrainingTask(this.projects)
+            if (!trainingTask) {
+                return false
+            }
             const trainingDuration = this.timeEntry[trainingTask.id]
             return trainingDuration && trainingDuration.asMinutes() === 480
         },
         isWholeDayOff: function () {
             const dayOffTask = findDayOffTask(this.projects)
+            if (!dayOffTask) {
+                return false
+            }
             const dayOffDuration = this.timeEntry[dayOffTask.id]
             return dayOffDuration && dayOffDuration.asMinutes() === 480
         }

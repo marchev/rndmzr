@@ -30,12 +30,12 @@
 </template>
 
 <script>
-import { mapMutations } from 'vuex'
 import debounce from 'lodash/debounce'
-import { mapFields } from 'vuex-map-fields'
+import projects from '@/components/mixins/projects-mixin'
 
 export default {
   name: 'MyProjects',
+  mixins: [ projects ],
   data() {
     return {
         isFetching: false,
@@ -51,20 +51,7 @@ export default {
       }
     }
   },
-  computed: {
-    ...mapFields([
-      'userInfo',
-      'projects'
-    ]),
-    workspace: function () {
-      return this.userInfo.activeWorkspace
-    }
-  },
   methods: {
-    ...mapMutations([
-      'addProject',
-      'removeProject'
-    ]),
     fetchProjects: debounce(async function (name) {
         if (!name.length) {
             this.foundProjects = []
@@ -83,26 +70,7 @@ export default {
         } finally {
           this.isFetching = false
         }
-    }, 500),
-    async addBAUProject() {
-      const [ bauProject ] = await this.$clockify.findProjectsByName(this.workspace, "BAU Placeholder")
-      bauProject.unremovable = true
-      this.addProjectToMyProjects(bauProject)
-    },
-    async addProjectToMyProjects(project) {
-      const tasks = (await this.$clockify.getProjectTasks(this.workspace, project.id)).map(task => ({
-        id: task.id,
-        name: task.name,
-        type: this.$clockify.getTaskType(task.name)
-      }))
-      project.tasks = tasks
-      this.addProject(project)
-      this.$bugsnag.leaveBreadcrumb('Project added', { project })
-    },
-    async removeProjectFromMyProjects(project) {
-      this.$bugsnag.leaveBreadcrumb('Project removed', { project })
-      this.removeProject(project)
-    }
+    }, 500)
   }
 }
 </script>

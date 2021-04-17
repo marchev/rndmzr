@@ -38,8 +38,7 @@ function getAPIKey() {
     return apiKey
   }
   else {
-    console.error('Clockify API key has not been configured.')
-    return undefined
+    throw 'Clockify API key has not been configured'
   }
 }
   

@@ -1,3 +1,4 @@
+import { mapMutations } from 'vuex'
 import { mapFields } from 'vuex-map-fields'
 
 import { isProfileTask, findDayOffTask } from '@/helpers/timesheet-helpers'
@@ -6,8 +7,12 @@ export default {
     computed: {
         ...mapFields([
             'projects',
+            'userInfo',
             'profile'
         ]),
+        workspace: function () {
+            return this.userInfo.activeWorkspace
+        },
         projectsCount: function () {
             return this.projects.length
         },
@@ -36,11 +41,35 @@ export default {
         }
     },
     methods: {
+        ...mapMutations([
+            'addProject',
+            'removeProject'
+        ]),
         getTaskProjectId(taskId) {
             const [ projectId ] = this.projects
                 .filter(project => project.tasks.filter(task => task.id === taskId).length)
                 .map(project => project.id)
             return projectId
+        },
+        async addBAUProject() {
+          const [ bauProject ] = await this.$clockify.findProjectsByName(this.workspace, "BAU Placeholder")
+          bauProject.unremovable = true
+          bauProject.name = "BAU Placeholder"
+          this.addProjectToMyProjects(bauProject)
+        },
+        async addProjectToMyProjects(project) {
+          const tasks = (await this.$clockify.getProjectTasks(this.workspace, project.id)).map(task => ({
+            id: task.id,
+            name: task.name,
+            type: this.$clockify.getTaskType(task.name)
+          }))
+          project.tasks = tasks
+          this.addProject(project)
+          this.$bugsnag.leaveBreadcrumb('Project added', { project })
+        },
+        async removeProjectFromMyProjects(project) {
+          this.$bugsnag.leaveBreadcrumb('Project removed', { project })
+          this.removeProject(project)
         }
     }
 }

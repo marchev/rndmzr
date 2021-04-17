@@ -75,6 +75,10 @@ export default {
             return profileService.getExpectedDailyDistribution(this.profile, this.dayTotal)
         },
         actualTotalPerType: function()  {
+            if (!this.timeEntry) {
+                return { capex: zeroDuration(), opex: zeroDuration() }
+            }
+
             return Object.entries(this.timeEntry).reduce((actualCapexOpex, [taskId, duration]) => {
                 const [taskType] = this.allTasks.filter(task => task.id === taskId).map(task => task.type)
                 if (taskType === 'capex') {
@@ -99,11 +103,17 @@ export default {
         },
         isWholeDayTraining: function () {
             const trainingTask = findTrainingTask(this.projects)
+            if (!trainingTask) {
+                return false
+            }
             const trainingDuration = this.timeEntry[trainingTask.id]
             return trainingDuration && trainingDuration.asMinutes() === this.dayTotal.asMinutes()
         },
         isWholeDayOff: function() {
             const dayOffTask = findDayOffTask(this.projects)
+            if (!dayOffTask) {
+                return false
+            }
             const dayOffDuration = this.timeEntry[dayOffTask.id]
             return dayOffDuration && dayOffDuration.asMinutes() === this.dayTotal.asMinutes()
         },

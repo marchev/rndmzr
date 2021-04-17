@@ -1,4 +1,5 @@
 import dayjs from '@/helpers/dayjs'
+import { zeroDuration } from '@/helpers/time-helpers'
 import Fraction from 'fraction.js'
 
 export default class ProfileService {
@@ -83,10 +84,18 @@ export default class ProfileService {
     }
 
     getDistributionProfile(profile) {
+        if (!profile) {
+            throw 'No profile has been configured'
+        }
+        
         return this.DISTRIBUTION_PROFILE[profile]
     }
 
     getExpectedDailyDistribution(profile, dailyTotal) {
+        if (!profile) {
+            throw 'No profile has been configured'
+        }
+        
         const capex = this.DISTRIBUTION_PROFILE[profile]['distribution']['capex']
         const opex = this.DISTRIBUTION_PROFILE[profile]['distribution']['opex']
 
