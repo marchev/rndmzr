@@ -199,13 +199,14 @@ import CapexOpexViolationMessage from '@/components/util/CapexOpexViolationMessa
 
 import filters from '@/components/mixins/filters-mixin'
 import projects from '@/components/mixins/projects-mixin'
+import snackbar from '@/components/mixins/snackbar-mixin'
 
 const profileService = new ProfileService()
 const timesheetGeneratorService = new TimesheetGeneratorService()
 
 export default {
     name: 'TimesheetTable',
-    mixins: [ filters, projects ],
+    mixins: [ filters, projects, snackbar ],
     components: {
         DurationPicker,
         QuickActions,
@@ -456,11 +457,7 @@ export default {
                     throw new Error(`Cannot find project with projectId ${projectId}`)
                 }
                 await this.addProjectToMyProjects(project)
-                console.log(`Added missing project: projectId=${project.id} projectName=${project.name}`)
             }))
-        },
-        openSnackbar(message, type) {
-            this.$buefy.snackbar.open({ message, type, position: 'is-top', actionText: 'OK', indefinite: true })
         },
         onPageChange(currentPage) {
             const weekAheadOrBehind = currentPage - this.previousPage

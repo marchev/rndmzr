@@ -32,10 +32,11 @@
 <script>
 import debounce from 'lodash/debounce'
 import projects from '@/components/mixins/projects-mixin'
+import snackbar from '@/components/mixins/snackbar-mixin'
 
 export default {
   name: 'MyProjects',
-  mixins: [ projects ],
+  mixins: [ projects, snackbar ],
   data() {
     return {
         isFetching: false,
