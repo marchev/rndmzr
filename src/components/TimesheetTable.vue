@@ -216,7 +216,6 @@ export default {
     data () {
         return {
             currentWeekStart: currentWeekStart(),
-            timeEntries: [],
             distributionProfile: {},
             showProfileTasksOnly: true,
             previousPage: weeksInYear(),
@@ -233,6 +232,7 @@ export default {
     computed: {
         ...mapFields([
             'userInfo',
+            'timeEntries',
             'softSubmit',
             'overrideMode',
             'status',

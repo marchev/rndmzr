@@ -1,14 +1,15 @@
 import { mapMutations } from 'vuex'
 import { mapFields } from 'vuex-map-fields'
 
-import { isProfileTask, findDayOffTask } from '@/helpers/timesheet-helpers'
+import { isProfileTask, findDayOffTask, getAllTimesheetTaskIds } from '@/helpers/timesheet-helpers'
 
 export default {
     computed: {
         ...mapFields([
             'projects',
             'userInfo',
-            'profile'
+            'profile',
+            'timeEntries'
         ]),
         workspace: function () {
             return this.userInfo.activeWorkspace
@@ -68,8 +69,17 @@ export default {
           this.$bugsnag.leaveBreadcrumb('Project added', { project })
         },
         async removeProjectFromMyProjects(project) {
-          this.$bugsnag.leaveBreadcrumb('Project removed', { project })
-          this.removeProject(project)
+            if (this.hasProjectAnyTimeEntries(project)) {
+                this.openSnackbar(`Project cannot be removed as time entries have been reported for it`, 'is-danger')
+                return
+            }
+            this.$bugsnag.leaveBreadcrumb('Project removed', { project })
+            this.removeProject(project)
+        },
+        hasProjectAnyTimeEntries(project) {
+            const projectTaskIds = project.tasks.map(task => task.id)
+            const timesheetTaskIds = getAllTimesheetTaskIds(this.timeEntries)
+            return projectTaskIds.filter(x => timesheetTaskIds.includes(x)).length > 0
         }
     }
 }

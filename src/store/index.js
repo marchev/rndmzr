@@ -11,6 +11,7 @@ export default new Vuex.Store({
     apiKey: '',
     softSubmit: false,
     overrideMode: false,
+    timeEntries: [],
     projects: [],
     userInfo: {},
     capexOpexRatioViolations: [],

@@ -1,4 +1,5 @@
 import dayjs from '@/helpers/dayjs'
+import { zeroDuration } from '@/helpers/time-helpers'
 
 const DAY_OFF_TASK = 'Absence - Day off'
 const TRAINING_TASK = 'Admin - Internal Paysafe Training'
@@ -46,3 +47,12 @@ export const findTrainingTask = (projects) => projects
     .flatMap(project => project.tasks)
     .filter(task => task.name.includes(TRAINING_TASK))
     .shift()
+
+/* eslint-disable no-unused-vars */
+export const getAllTimesheetTaskIds = (timeEntries) =>
+    [...new Set(timeEntries
+        .flatMap(dayEntry =>
+            Object.entries(dayEntry)
+                .filter(([taskId, duration]) => duration.asMinutes() > zeroDuration().asMinutes())
+                .map(([taskId, duration]) => taskId)
+        ))]
