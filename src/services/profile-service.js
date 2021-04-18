@@ -1,5 +1,4 @@
 import dayjs from '@/helpers/dayjs'
-import { zeroDuration } from '@/helpers/time-helpers'
 import Fraction from 'fraction.js'
 
 export default class ProfileService {

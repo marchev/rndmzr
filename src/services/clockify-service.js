@@ -37,7 +37,7 @@ export default class ClockifyService {
         const start = weekStart.format()
         const end = weekStart.add(1, 'week').subtract(1, 'millisecond').format()
 
-        const entriesResponse = await this.httpClient.get(`https://global.api.clockify.me/workspaces/${workspace}/timeEntries/users/${userId}?start=${start}&end=${end}&hydrated=false&page-size=500`)
+        const entriesResponse = await this.httpClient.get(`https://global.api.clockify.me/workspaces/${workspace}/timeEntries/users/${userId}?start=${start}&end=${end}&hydrated=true&page-size=500`)
         const weekStatusResponse = await this.httpClient.get(`https://global.api.clockify.me/workspaces/${workspace}/users/${userId}/approval-requests/week-status?start=${weekStart.format()}`)
 
         const entries = entriesResponse.data
@@ -69,7 +69,7 @@ export default class ClockifyService {
     }
 
     getProjectIds(clockifyEntries) {
-        return [...new Set(clockifyEntries.map(entry => entry.projectId))]
+        return [...new Set(clockifyEntries.map(entry => entry.project.id))]
     }
 
     timeEntry = (start, end, projectId, taskId) => ({

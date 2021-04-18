@@ -25,7 +25,7 @@ export const timeToStartEntries = (weekStart, dayIndex, workDayStart) =>
 export const convertToTimesheet = (clockifyEntries, weekStart) => clockifyEntries.reduce((timesheet, entry) => {
         const entryStart = dayjs(entry.timeInterval.start)
         const dayIndex = entryStart.diff(weekStart, 'day')
-        const taskId = entry.taskId
+        const taskId = entry.task.id
         const duration = dayjs.duration(entry.timeInterval.duration)
 
         if (!timesheet[dayIndex]) {
