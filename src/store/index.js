@@ -11,12 +11,15 @@ export default new Vuex.Store({
     apiKey: '',
     softSubmit: false,
     overrideMode: false,
+    capexOpexViolationMode: false,
+    capexOpexViolationThreshold: 5,
+    reminder: false,
+    reminderDays: [],
+    reminderTime: '1970-01-01T07:00:00Z',
     timeEntries: [],
     projects: [],
     userInfo: {},
     capexOpexRatioViolations: [],
-    capexOpexViolationMode: false,
-    capexOpexViolationThreshold: 5,
     status: 'UNSUBMITTED'
   },
   getters: {
@@ -42,6 +45,9 @@ export default new Vuex.Store({
       'overrideMode',
       'capexOpexViolationMode',
       'capexOpexViolationThreshold',
+      'reminder',
+      'reminderDays',
+      'reminderTime',
       'userInfo',
       'projects'
     ]
