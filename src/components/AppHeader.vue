@@ -1,13 +1,13 @@
 <template>
   <div class="nav">
-    <nav class="navbar is-light has-shadow">
+    <nav class="navbar has-shadow">
         <div class="container">
           <div class="navbar-brand">
             <a class="navbar-item">
-              <img src="../assets/logo.png" style="max-height: 48px">
+              <img class="rndmzr-logo" />
             </a>
-            <h1 class="is-size-2 has-text-weight">rndmzr </h1>
-            <b-tag type="is-danger" class="ml-3 mt-5">beta</b-tag>
+            <h1 class="is-size-2 has-text-weight-light">rndmzr</h1>
+            <b-tag type="is-danger" class="beta-tag">beta</b-tag>
             <a class="navbar-burger mt-3 mr-3"
                 @click="toggleMobileMenu"
                 v-bind:class="{ 'is-active': isMobileMenuVisible }">
@@ -45,6 +45,9 @@
                 </b-icon>
                 <b-skeleton width="130px" :animated="true"></b-skeleton>
               </a>
+              <div class="pt-4">
+                <theme-switcher></theme-switcher>
+              </div>
             </div>
           </div>
         </div>
@@ -53,14 +56,42 @@
   </div>
 </template>
 
+<style lang="scss">
+.beta-tag {
+  margin-top: 1.25rem;
+  margin-left: 1rem;
+}
+
+/** Light theme */
+body[data-theme="light"] {
+  nav.navbar {
+    @extend .is-light !optional;
+  }
+}
+
+/** Dark theme */
+body[data-theme="dark"] {
+  nav.navbar {
+    @extend .is-dark !optional;
+  }
+}
+
+/** Fix navbar rounded edges */
+nav.navbar {
+  border-radius: 0;
+}
+</style>
+
 <script>
 import { mapFields } from 'vuex-map-fields'
 import DonationModal from './DonationModal.vue'
+import ThemeSwitcher from './util/ThemeSwitcher.vue'
 
 export default {
   name: 'Navigation',
   components: {
-    DonationModal
+    DonationModal,
+    ThemeSwitcher
   },
   data() {
     return {
@@ -69,8 +100,12 @@ export default {
   },
   computed: {
     ...mapFields([
-      'userInfo'
-    ])
+      'userInfo',
+      'darkMode'
+    ]),
+    logoUrl: function () {
+      return `/assets/logo-${this.darkMode ? 'white' : 'dark' }.png`
+    }
   },
   methods: {
     toggleMobileMenu() {

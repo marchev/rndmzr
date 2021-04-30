@@ -1,0 +1,102 @@
+@import "bulmaswatch/darkly/bulmaswatch";
+@import "buefy/src/scss/buefy";
+@import "common";
+
+/**
+    Theme customizations
+**/
+
+/** Navigation bar **/
+nav.navbar {
+    @extend .is-dark;
+}
+
+/** Navigation logo **/
+img.rndmzr-logo {
+    content:url('/assets/logo-white.png');
+}
+
+/** Dark inputs **/
+input.input:not([disabled]), select {
+
+    & {
+        color: $grey-lighter !important;
+        background-color: $body-background-color !important;
+    }
+
+    &::placeholder {
+        color: $grey !important;
+    }
+}
+
+/** Dropdown **/
+div.autocomplete .dropdown-item {
+
+    &:hover {
+        color: $white-ter !important;
+        background-color: $grey-dark;
+    }
+
+    &.is-hovered {
+        color: $white-ter !important;
+        background-color: $grey-dark !important;
+    }
+}
+
+/** Timepicker **/
+div.timepicker select {
+    background-color: $grey-darker;
+    color: $white-ter;
+}
+
+/** Randomize! button **/
+button.randomize {
+    @extend .is-light;
+}
+
+/** Reset button **/
+button.reset {
+    @extend .is-dark;
+}
+
+/** Footer icons **/
+p.footer-icons span.icon {
+    @extend .has-text-light;
+}
+
+/** Quick action buttons */
+span.quick-action-button {
+    a:not(.is-active) span.quick-action-icon {
+        color: $grey !important;
+    }
+
+    a.is-active span.quick-action-icon svg {
+        color: $grey-lighter !important;
+    }
+}
+
+div.quick-actions:not(.disabled) {
+    span.quick-action-button:hover {
+        a:not(.is-active) span.quick-action-icon svg {
+            color: $grey-light !important;
+        }
+    }
+}
+
+/** Loading background */
+div.loading-background {
+    background:rgba(0, 0, 0, 0.8) !important;
+}
+
+/** Snackbar **/
+div.snackbar {
+    background: #343c3f !important;
+
+    button.button {
+        background: #343c3f !important;
+
+        &:hover {
+            background: #343c3f !important;
+        }
+    }
+}

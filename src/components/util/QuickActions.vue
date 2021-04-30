@@ -45,25 +45,6 @@ span.quick-action-button {
         margin: 0px 4px !important;
     }
 }
-
-span.quick-action-button {
-
-    a:not(.is-active) span.quick-action-icon svg {
-        color: rgba(10, 10, 10, 0.2) !important;
-    }
-
-    a.is-active span.quick-action-icon svg {
-        color: #363636 !important;
-    }
-}
-
-div.quick-actions:not(.disabled) {
-    span.quick-action-button:hover {
-        a:not(.is-active) span.quick-action-icon svg {
-            color: #363636 !important;
-        }
-    }
-}
 </style>
 
 <script>

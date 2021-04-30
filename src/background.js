@@ -1,5 +1,16 @@
 import { isItReminderTime } from './helpers/reminder-helper'
 
+// Dark mode icon support
+if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+  chrome.browserAction.setIcon({
+    path: {
+      "16": "icons/16-white.png",
+      "48": "icons/48-white.png",
+      "128": "icons/128-white.png"
+    }
+  })
+}
+
 /* eslint-disable no-unused-vars */
 browser.browserAction.onClicked.addListener(async _ => {
   const standaloneURL = chrome.extension.getURL('index.html')
@@ -7,6 +18,7 @@ browser.browserAction.onClicked.addListener(async _ => {
     'url': standaloneURL
   })
 })
+
 
 setInterval(() => {
   const vuex = JSON.parse(localStorage.getItem('vuex'))

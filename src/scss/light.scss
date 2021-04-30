@@ -1,0 +1,51 @@
+@import "bulmaswatch/flatly/bulmaswatch";
+@import "buefy/src/scss/buefy";
+@import "common";
+
+/**
+    Theme customizations
+**/
+
+/** Navigation bar **/
+nav.navbar {
+    @extend .is-light;
+}
+
+/** Navigation logo **/
+img.rndmzr-logo {
+    content:url('/assets/logo-dark.png');
+}
+
+/** Randomize! button **/
+button.randomize {
+    @extend .is-dark;
+}
+
+/** Reset button **/
+button.reset {
+    @extend .is-light;
+}
+
+/** Footer icons **/
+p.footer-icons span.icon {
+    @extend .has-text-dark;
+}
+
+/** Quick action buttons */
+span.quick-action-button {
+    a:not(.is-active) span.quick-action-icon {
+        color: $grey-light !important;
+    }
+
+    a.is-active span.quick-action-icon svg {
+        color: $grey-darker !important;
+    }
+}
+
+div.quick-actions:not(.disabled) {
+    span.quick-action-button:hover {
+        a:not(.is-active) span.quick-action-icon svg {
+            color: $grey-dark !important;
+        }
+    }
+}

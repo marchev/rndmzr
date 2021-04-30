@@ -3,8 +3,8 @@
         <capex-opex-violation-message></capex-opex-violation-message>
         <div id="generator" class="generator mt-4 columns">
             <div class="column">
-            <b-button @click="randomize()" :disabled="locked || timesheetLoading" type="is-dark" class="mr-2">Randomize!</b-button>
-            <b-button @click="resetClicked()" :disabled="locked || timesheetLoading" type="is-light">Reset</b-button>
+            <b-button @click="randomize()" :disabled="locked || timesheetLoading" class="mr-2 randomize">Randomize!</b-button>
+            <b-button @click="resetClicked()" :disabled="locked || timesheetLoading" class="reset">Reset</b-button>
             </div>
             <div class="column has-text-right">
             <b-button @click="submit()" :disabled="isTimesheetEmpty || locked || timesheetLoading" type="is-danger">Submit</b-button>
@@ -48,7 +48,7 @@
                 </template>
 
                 <template v-slot="project">
-                    <b-tag type="is-light has-text-weight-semibold">
+                    <b-tag class="project-hours-count has-text-weight-semibold">
                         {{ dayTotalsPerProject[index][project.row.id] | hoursCount }}
                     </b-tag>
                 </template>
@@ -93,7 +93,7 @@
 
             <template #top-left>
                 <div id="profile-tasks-switch" class="has-text-weight-semibold">
-                    <b-switch v-model="showProfileTasksOnly" type="is-success">Show profile tasks only</b-switch>
+                    <b-switch v-model="showProfileTasksOnly" type="is-link">Show profile tasks only</b-switch>
                 </div>
                 <span :class="
                         [
@@ -236,7 +236,8 @@ export default {
             'softSubmit',
             'overrideMode',
             'status',
-            'capexOpexRatioViolations'
+            'capexOpexRatioViolations',
+            'darkMode'
         ]),
         weekDates: function() {
             const weekDates = []
@@ -352,6 +353,7 @@ export default {
             this.$bugsnag.leaveBreadcrumb('Populated randomized timesheet', { generatedTimesheet })
             this.$buefy.toast.open({
                 message: 'Successfully randomized that sh*t 🧐',
+                type: this.darkMode ? 'is-light' : 'is-dark',
                 queue: false
             })
         },

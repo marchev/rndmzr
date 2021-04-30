@@ -18,7 +18,6 @@ Bugsnag.start({
 })
 
 import Buefy from 'buefy'
-import 'buefy/dist/buefy.css'
 
 import App from './App.vue'
 import store from '../store'

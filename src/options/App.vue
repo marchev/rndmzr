@@ -1,6 +1,6 @@
 <template>
   <div class="rndmzr-settings">
-
+      <theme-switcher :visible="false"></theme-switcher>
       <div class="container py-4 px-4">
         <b-field label="Profile">
             <b-select placeholder="Select a profile" icon="users" expanded v-model="profileFieldValue">
@@ -16,16 +16,18 @@
         <b-field label="Soft Submit">
           <b-tooltip multilined label="Only creates time entries without submitting them for approval"
             position="is-right"
-            size="is-large">
-            <b-switch type="is-default" v-model="softSubmitValue" >
+            size="is-large"
+            type="is-link">
+            <b-switch type="is-link" v-model="softSubmitValue" >
             </b-switch>
           </b-tooltip>
         </b-field>
         <b-field label="Override Mode">
           <b-tooltip multilined label="Deletes all time entries for the week at Clockify before submit"
             position="is-right"
-            size="is-large">
-            <b-switch type="is-default" v-model="overrideModeValue" >
+            size="is-large"
+            type="is-link">
+            <b-switch type="is-link" v-model="overrideModeValue" >
             </b-switch>
           </b-tooltip>
         </b-field>
@@ -33,8 +35,9 @@
           <b-field>
             <b-tooltip multilined label="Shows a warning when the CAPEX/OPEX ratio deviates from the given threshold"
             position="is-right"
-            size="is-large">
-              <b-switch v-model="capexOpexViolationModeValue" type="is-default" class="mt-1">
+            size="is-large"
+            type="is-link">
+              <b-switch v-model="capexOpexViolationModeValue" type="is-link" class="mt-1">
               </b-switch>
             </b-tooltip>
           </b-field>
@@ -55,8 +58,9 @@
           <b-field>
             <b-tooltip multilined label="Sets a reminder for submitting timesheets as per the configured frequency"
               position="is-right"
-              size="is-large">
-              <b-switch v-model="reminderValue" type="is-default" class="mt-1">
+              size="is-large"
+              type="is-link">
+              <b-switch v-model="reminderValue" type="is-link" class="mt-1">
               </b-switch>
             </b-tooltip>
           </b-field>
@@ -75,65 +79,72 @@
         </b-field>
 
         <div class="daySelector">
-          <b-tooltip label="Monday" position="is-top" size="is-large">
+          <b-tooltip label="Monday" position="is-top" size="is-large" type="is-link">
               <b-checkbox-button v-model="reminderDaysValue"
                   native-value="1"
                   size="is-small"
+                  type="is-link"
                   :disabled="!reminderValue">
                   <span class="semi-bold">M</span>
               </b-checkbox-button>
           </b-tooltip>
 
-          <b-tooltip label="Tuesday" position="is-top" size="is-large" class="ml-2">
+          <b-tooltip label="Tuesday" position="is-top" size="is-large" type="is-link" class="ml-1">
             <b-checkbox-button v-model="reminderDaysValue"
                 native-value="2"
                 size="is-small"
+                type="is-link"
                 :disabled="!reminderValue">
                 <span class="semi-bold">T</span>
             </b-checkbox-button>
           </b-tooltip>
 
-          <b-tooltip label="Wednesday" position="is-top" size="is-large" class="ml-2">
+          <b-tooltip label="Wednesday" position="is-top" size="is-large" type="is-link" class="ml-1">
             <b-checkbox-button v-model="reminderDaysValue"
                 native-value="3"
                 size="is-small"
+                type="is-link"
                 :disabled="!reminderValue">
                 <span class="semi-bold">W</span>
             </b-checkbox-button>
           </b-tooltip>
 
-          <b-tooltip label="Thursday" position="is-top" size="is-large" class="ml-2">
+          <b-tooltip label="Thursday" position="is-top" size="is-large" type="is-link" class="ml-1">
             <b-checkbox-button v-model="reminderDaysValue"
                 native-value="4"
                 size="is-small"
+                type="is-link"
                 :disabled="!reminderValue">
                 <span class="semi-bold">T</span>
             </b-checkbox-button>
           </b-tooltip>
 
 
-          <b-tooltip label="Friday" position="is-top" size="is-large" class="ml-2">
+          <b-tooltip label="Friday" position="is-top" size="is-large" type="is-link" class="ml-1">
             <b-checkbox-button v-model="reminderDaysValue"
                 native-value="5"
                 size="is-small"
+                type="is-link"
                 :disabled="!reminderValue">
                 <span class="semi-bold">F</span>
             </b-checkbox-button>
           </b-tooltip>
 
-          <b-tooltip label="Saturday" position="is-top" size="is-large" class="ml-2">
+          <b-tooltip label="Saturday" position="is-top" size="is-large" type="is-link" class="ml-1">
             <b-checkbox-button v-model="reminderDaysValue"
                 native-value="6"
                 size="is-small"
+                type="is-link"
                 :disabled="!reminderValue">
                 <span class="semi-bold">S</span>
             </b-checkbox-button>
           </b-tooltip>
 
-          <b-tooltip label="Sunday" position="is-top" size="is-large" class="ml-2">
+          <b-tooltip label="Sunday" position="is-top" size="is-large" type="is-link" class="ml-1">
             <b-checkbox-button v-model="reminderDaysValue"
                 native-value="7"
                 size="is-small"
+                type="is-link"
                 :disabled="!reminderValue">
                 <span class="semi-bold">S</span>
             </b-checkbox-button>
@@ -141,7 +152,7 @@
         </div>
 
         <div class="has-text-right">
-          <b-button type="is-primary" class="my-2" @click="saveSettings">Save</b-button>
+          <b-button type="is-link" class="my-2" @click="saveSettings">Save</b-button>
         </div>
       </div>
   </div>
@@ -171,12 +182,14 @@ div.daySelector {
 
 <script>
 import { mapFields } from 'vuex-map-fields'
-// import dayjs from '@/helpers/dayjs'
+import ThemeSwitcher from '../components/util/ThemeSwitcher.vue'
 
 export default {
   name: 'App',
+  components: { ThemeSwitcher },
   computed: {
     ...mapFields([
+      'darkMode',
       'profile',
       'apiKey',
       'softSubmit',
@@ -229,7 +242,11 @@ export default {
       this.reminder = this.reminderValue
       this.reminderDays = this.reminderDaysValue
       this.reminderTime = this.reminderTimeValue.toISOString()
-      this.$buefy.toast.open('Settings saved')
+      this.$buefy.toast.open({
+        message: 'Settings saved',
+        type: this.darkMode ? 'is-light' : 'is-dark',
+        queue: false
+      })
     }
   }
 }

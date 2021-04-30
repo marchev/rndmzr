@@ -1,0 +1,30 @@
+/** Navigation logo **/
+img.rndmzr-logo {
+    max-height: 48px;
+}
+
+/** Navigation title **/
+div.navbar-brand h1 {
+    cursor: default;
+}
+
+/** Timepicker padding **/
+div.timepicker {
+    
+    .control.has-icons-left .input {
+        padding-left: 1.75rem;
+    }
+}
+
+/** Dropdown **/
+div.autocomplete .dropdown-item {
+
+    &, &:hover {
+        font-size: 15px;
+    }
+}
+
+/** Timepicker **/
+div.timepicker div.dropdown-menu {
+    margin-left: -10px;
+}

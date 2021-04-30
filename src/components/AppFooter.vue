@@ -2,14 +2,13 @@
   <footer class="footer">
   <div class="content has-text-centered">
     <p>
-      <span class="semi-bold">rndmzr</span> by <a href="https://github.com/marchev">marchev</a>
+      <span class="semi-bold">rndmzr</span> by <a href="https://github.com/marchev"><span class="semi-bold">marchev</span></a>
     </p>
-    <p>
+    <p class="footer-icons">
       <a @click="clickGithub()" href="https://github.com/marchev/rndmzr" target="_blank">
         <b-icon
             pack="fab"
             size="is-medium"
-            type="is-dark"
             icon="github">
         </b-icon>
       </a>
@@ -17,14 +16,12 @@
         <b-icon
             pack="fab"
             size="is-medium"
-            type="is-dark"
             icon="slack-hash">
         </b-icon>
       </a>
       <a @click="clickAnalytics()" href="https://app.panelbear.com/share/4A5ygjmAnVhfeOLoyvMJoU/" target="_blank">
         <b-icon
             size="is-medium"
-            type="is-dark"
             icon="chart-bar">
         </b-icon>
       </a>

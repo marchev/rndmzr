@@ -7,6 +7,7 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
+    darkMode: false,
     profile: '',
     apiKey: '',
     softSubmit: false,
@@ -39,6 +40,7 @@ export default new Vuex.Store({
   },
   plugins: [createPersistedState({
     paths: [
+      'darkMode',
       'profile',
       'apiKey',
       'softSubmit',

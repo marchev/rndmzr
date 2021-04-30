@@ -17,7 +17,8 @@
             :loading="isFetching"
             @typing="fetchProjects"
             @select="project => addProjectToMyProjects(project)"
-            :keep-first="true">
+            :keep-first="true"
+            class="projects-autocomplete">
 
             <template slot-scope="props">
                 <div class="media">
@@ -28,6 +29,12 @@
     </b-field>
   </section>
 </template>
+
+<style lang="scss">
+.projects-autocomplete input {
+  padding-left: 0.75rem;
+}
+</style>
 
 <script>
 import debounce from 'lodash/debounce'
