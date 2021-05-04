@@ -1,5 +1,5 @@
 import dayjs from '@/helpers/dayjs'
-import { currentWeekStart } from '@/helpers/time-helpers'  
+import { currentWeekStart } from '@/helpers/time-helpers'
 import { Chance } from 'chance'
 
 const chance = new Chance()
@@ -7,7 +7,8 @@ const chance = new Chance()
 export default class TimesheetGeneratorService {
 
     /* eslint-disable no-unused-vars */
-    generateTimesheet(distributionProfile, projects) {
+    async generateTimesheet(distributionProfile, projects, weekDatesHolidays, dayOffTask) {
+        console.log(weekDatesHolidays)
         const { capex, opex } = distributionProfile.distribution
         const capexTasks = this.getProjectsTasksOfType(projects, 'capex')
         const opexTasks = this.getProjectsTasksOfType(projects, 'opex')
@@ -17,10 +18,14 @@ export default class TimesheetGeneratorService {
             console.log(`Generating timesheets for ${currentWeekStart().add(dayIndex, 'day').format('dddd')}`)
             timesheet[dayIndex] = []
 
-            const capexTimesheet = this.generateDayTimesheet(capex, capexTasks, 'CAPEX')
-            const opexTimesheet = this.generateDayTimesheet(opex, opexTasks, 'OPEX')
-            Object.entries(capexTimesheet).forEach(([taskId, duration]) => timesheet[dayIndex][taskId] = duration)
-            Object.entries(opexTimesheet).forEach(([taskId, duration]) => timesheet[dayIndex][taskId] = duration)
+            if (weekDatesHolidays[dayIndex]) {
+                timesheet[dayIndex][dayOffTask.id] = dayjs.duration(8, 'hours')
+            } else {
+                const capexTimesheet = this.generateDayTimesheet(capex, capexTasks, 'CAPEX')
+                const opexTimesheet = this.generateDayTimesheet(opex, opexTasks, 'OPEX')
+                Object.entries(capexTimesheet).forEach(([taskId, duration]) => timesheet[dayIndex][taskId] = duration)
+                Object.entries(opexTimesheet).forEach(([taskId, duration]) => timesheet[dayIndex][taskId] = duration)
+            }
         }
 
         return timesheet

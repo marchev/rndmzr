@@ -37,8 +37,12 @@
 
             <b-table-column v-for="(weekDate, index) in weekDates"
                 :key="weekDate | weekday"
-                :label="weekDate | fulldate"
+                :meta="weekDate"
                 centered>
+
+                <template v-slot:header="{ column }">
+                    <holiday-tooltip :datetime="column.meta"></holiday-tooltip>
+                </template>
 
                 <template #subheading>
                     <quick-actions
@@ -189,11 +193,14 @@ import { mapFields } from 'vuex-map-fields'
 
 import { currentWeekStart, weeksInYear, daysInWeek, zeroDuration } from '@/helpers/time-helpers'
 import { getDayEntries, timeToStartEntries, convertToTimesheet } from '@/helpers/timesheet-helpers'
+import { findDayOffTask } from '@/helpers/timesheet-helpers'
+import { isPublicHoliday } from '@/helpers/calendarific'
 import ProfileService from '@/services/profile-service'
 import TimesheetGeneratorService from '@/services/timesheet-generator-service'
 
 import DurationPicker from '@/components/util/DurationPicker.vue'
 import QuickActions from '@/components/util/QuickActions.vue'
+import HolidayTooltip from './util/HolidayTooltip.vue'
 import CapexOpexViolationIcon from '@/components/util/CapexOpexViolationIcon.vue'
 import CapexOpexViolationMessage from '@/components/util/CapexOpexViolationMessage.vue'
 
@@ -210,6 +217,7 @@ export default {
     components: {
         DurationPicker,
         QuickActions,
+        HolidayTooltip,
         CapexOpexViolationIcon,
         CapexOpexViolationMessage
     },
@@ -288,6 +296,11 @@ export default {
             return this.status === 'PENDING' || this.status === 'APPROVED'
         }
     },
+    asyncComputed: {
+        async weekDatesHolidays () {
+            return await Promise.all(this.weekDates.map(async weekDate => await isPublicHoliday(weekDate)))
+        }
+    },
     watch: {
         /* eslint-disable no-unused-vars */
         projects: {
@@ -345,10 +358,11 @@ export default {
                 })
             })
         },
-        randomize() {
+        async randomize() {
             this.$bugsnag.leaveBreadcrumb('Randomize! button clicked')
             this.reset()
-            const generatedTimesheet = timesheetGeneratorService.generateTimesheet(this.distributionProfile, this.profileProjects)
+            const dayOffTask = findDayOffTask(this.projects)
+            const generatedTimesheet = await timesheetGeneratorService.generateTimesheet(this.distributionProfile, this.profileProjects, this.weekDatesHolidays, dayOffTask)
             this.populateTimeEntries(generatedTimesheet)
             this.$bugsnag.leaveBreadcrumb('Populated randomized timesheet', { generatedTimesheet })
             this.$buefy.toast.open({

@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import AsyncComputed from 'vue-async-computed'
 import { version } from '../../package.json'
 import Bugsnag from '@bugsnag/js'
 import BugsnagPluginVue from '@bugsnag/plugin-vue'
@@ -51,6 +52,7 @@ Vue.use(Buefy, {
   defaultIconComponent: FontAwesomeIcon,
   defaultIconPack: 'fas'
 })
+Vue.use(AsyncComputed)
 
 // Init Clockify service
 const clockify = new ClockifyService(httpClient)
