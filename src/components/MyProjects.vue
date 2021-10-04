@@ -27,6 +27,8 @@
             </template>
         </b-autocomplete>
     </b-field>
+
+    <account-not-configured-message></account-not-configured-message>
   </section>
 </template>
 
@@ -41,9 +43,14 @@ import debounce from 'lodash/debounce'
 import projects from '@/components/mixins/projects-mixin'
 import snackbar from '@/components/mixins/snackbar-mixin'
 
+import AccountNotConfiguredMessage from './util/AccountNotConfiguredMessage.vue'
+
 export default {
   name: 'MyProjects',
   mixins: [ projects, snackbar ],
+  components: {
+    AccountNotConfiguredMessage
+  },
   data() {
     return {
         isFetching: false,

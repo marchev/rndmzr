@@ -52,6 +52,10 @@ export default {
                 .map(project => project.id)
             return projectId
         },
+        async getProjectsCount() {
+          const projectsCount = await this.$clockify.getProjectsCount(this.workspace)
+          return projectsCount
+        },
         async addBAUProject() {
           const [ bauProject ] = await this.$clockify.findProjectsByName(this.workspace, "BAU Placeholder")
           bauProject.unremovable = true

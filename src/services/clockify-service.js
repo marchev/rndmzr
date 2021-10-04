@@ -9,6 +9,11 @@ export default class ClockifyService {
         return data
     }
 
+    async getProjectsCount(workspace) {
+        let { data } = await this.httpClient.get(`https://global.api.clockify.me/workspaces/${workspace}/project-picker/clients?page=1`)
+        return data[0].projectsCount
+    }
+
     async findProjectsByName(workspace, name) {
         let { data } = await this.httpClient.get(`/workspaces/${workspace}/projects?name=${name}`)
         return data.map(project => ({ id: project.id, name: project.name }))
