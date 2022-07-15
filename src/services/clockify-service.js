@@ -20,7 +20,7 @@ export default class ClockifyService {
     }
 
     async getProjectTasks(workspace, projectId) {
-        const { data } = await this.httpClient.get(`/workspaces/${workspace}/projects/${projectId}/tasks?is-active=true&page-size=200`)
+        const { data } = await this.httpClient.get(`https://global.api.clockify.me/workspaces/${workspace}/project-picker/projects/${projectId}/tasks?is-active=true&page-size=200`)
         return data
     }
 

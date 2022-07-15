@@ -51,7 +51,7 @@ export default {
       this.showModal = true
     },
     async fetchDonatedSoFar() {
-      const { data } = await this.$http.get('https://gitcdn.link/repo/marchev/rndmzr-stats/main/donations')
+      const { data } = await this.$http.get('https://cdn.statically.io/gh/marchev/rndmzr-stats/main/donations')
       return data 
     }
   }

@@ -59,8 +59,8 @@ export default class ProfileService {
 
     PRODUCT_OWNER = {
         distribution: {
-            capex: 435, // minutes per day
-            opex: 45 // minutes per day
+            capex: 330, // minutes per day
+            opex: 150 // minutes per day
         },
         tasks: [
             // CAPEX
