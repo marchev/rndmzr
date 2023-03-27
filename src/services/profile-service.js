@@ -5,8 +5,8 @@ export default class ProfileService {
 
     ENGINEERING_MANAGER = {
         distribution: {
-            capex: 360, // minutes per day
-            opex: 120 // minutes per day
+            capex: 384, // minutes per day
+            opex: 96 // minutes per day
         },
         tasks: [
             // CAPEX
